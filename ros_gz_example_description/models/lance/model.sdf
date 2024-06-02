@@ -5,42 +5,156 @@
 
 		<!-- <pose relative_to='world'>0 0 0 0 0 0</pose> -->
 
-		<link name = 'frame'>
+		<!-- <link name = 'test_link'>
 			<pose relative_to = '__model__'>0 0 0 0 0 0</pose>
+			<visual name = 'test_visual'>
+				<geometry>
+					<mesh>
+						<uri>/mnt/c/users/hoodi/downloads/lance-2024-right-track.dae</uri>
+						<scale>3 3 3</scale>
+					</mesh>
+				</geometry>
+			</visual>
+		</link> -->
+
+	<!-- FRAME -->
+		<link name = 'core_link'>
+			<pose relative_to = '__model__'>0 0 0.13103567 0 0 0</pose>
+
 			<inertial>
-				<mass>26.21</mass>
+				<mass>9.773</mass>
 				<inertia>
-					<ixx> 2.861 </ixx>
-					<ixy> -0.00001612 </ixy>
-					<ixz> -0.561 </ixz>
-					<iyy> 2.489 </iyy>
+					<ixx> 0.909 </ixx>
+					<ixy> -0.0001142 </ixy>
+					<ixz> -0.2698 </ixz>
+					<iyy> 1.129 </iyy>
 					<iyz> 0.002 </iyz>
-					<izz> 3.873 </izz>
+					<izz> 1.479 </izz>
 				</inertia>
 			</inertial>
 
-			<visual name = 'visual_frame'>
+			<visual name = 'core_visual'>
 				<geometry>
 					<mesh>
-						<uri>./meshes/lance-1-static.stl</uri>
-						<scale>0.001 0.001 0.001</scale>
+						<uri>./meshes/lance-2024-frame.dae</uri>
+						<scale>1 1 1</scale>
 					</mesh>
 				</geometry>
-				<material>
-					<ambient>0.5 0.5 0.5 1</ambient>
-					<diffuse>0.5 0.5 0.5 1</diffuse>
-					<specular>0.5 0.5 0.5 1</specular>
-				</material>
 			</visual>
 
-			<collision name = 'collision_frame'>
+			<collision name = 'core_collision'>
 				<geometry>
 					<mesh>
-						<uri>./meshes/lance-1-static.stl</uri>
-						<scale>0.001 0.001 0.001</scale>
+						<uri>./meshes/lance-2024-frame-collision.stl</uri>
+						<scale>1 1 1</scale>
 					</mesh>
 				</geometry>
 			</collision>
+		</link>
+
+	<!-- LEFT TRACK -->
+		<link name = 'left_track_link'>
+			<pose relative_to = 'core_link'>0.20318559 0.28988800 0.00242022 0 0 0</pose>
+
+			<inertial>
+				<mass>6.925</mass>
+				<inertia>
+					<ixx> 0.073 </ixx>
+					<ixy> 0.0008 </ixy>
+					<ixz> -0.032 </ixz>
+					<iyy> 0.366 </iyy>
+					<iyz> 0.0006 </iyz>
+					<izz> 0.3 </izz>
+				</inertia>
+			</inertial>
+
+			<visual name = 'left_track_visual'>
+				<geometry>
+					<mesh>
+						<uri>./meshes/lance-2024-left-track.dae</uri>
+						<scale>1 1 1</scale>
+					</mesh>
+				</geometry>
+			</visual>
+
+			<collision name = 'left_track_collision'>
+				<geometry>
+					<mesh>
+						<uri>./meshes/lance-2024-left-track-collision.stl</uri>
+						<scale>1 1 1</scale>
+					</mesh>
+				</geometry>
+			</collision>
+		</link>
+
+	<!-- RIGHT TRACK -->
+		<link name = 'right_track_link'>
+			<pose relative_to = 'core_link'>0.20318559 -0.28988800 0.00242022 0 0 0</pose>
+
+			<inertial>
+				<mass>6.925</mass>
+				<inertia>
+					<ixx> 0.073 </ixx>
+					<ixy> -0.0006 </ixy>
+					<ixz> -0.032 </ixz>
+					<iyy> 0.366 </iyy>
+					<iyz> -0.0005 </iyz>
+					<izz> 0.3 </izz>
+				</inertia>
+			</inertial>
+
+			<visual name = 'right_track_visual'>
+				<geometry>
+					<mesh>
+						<uri>./meshes/lance-2024-right-track.dae</uri>
+						<scale>1 1 1</scale>
+					</mesh>
+				</geometry>
+			</visual>
+
+			<collision name = 'right_track_collision'>
+				<geometry>
+					<mesh>
+						<uri>./meshes/lance-2024-right-track-collision.stl</uri>
+						<scale>1 1 1</scale>
+					</mesh>
+				</geometry>
+			</collision>
+		</link>
+
+	<!-- LIDAR -->
+		<link name = 'lidar_link'>
+			<pose relative_to = 'core_link'>0.64957717 0 0.42478867 3.1415926 0.3490659 0</pose>
+
+			<inertial>
+				<mass>0.7</mass>
+				<inertia>
+					<ixx> 0.001 </ixx>
+					<ixy> 2e-8 </ixy>
+					<ixz> 4e-7 </ixz>
+					<iyy> 0.001 </iyy>
+					<iyz> -3e-5 </iyz>
+					<izz> 0.001 </izz>
+				</inertia>
+			</inertial>
+
+			<visual name = 'lidar_visual'>
+				<geometry>
+					<mesh>
+						<uri>./meshes/lance-2024-multiscan.dae</uri>
+						<scale>1 1 1</scale>
+					</mesh>
+				</geometry>
+			</visual>
+
+			<!-- <collision name = 'lidar_collision'>
+				<geometry>
+					<mesh>
+						<uri>./meshes/lance-2024-multiscan.dae</uri>
+						<scale>1 1 1</scale>
+					</mesh>
+				</geometry>
+			</collision> -->
 		</link>
 
 	</model>
