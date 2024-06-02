@@ -87,6 +87,11 @@
 			</collision>
 		</link>
 
+		<joint name = 'left_track_joint' type = 'fixed'>
+			<parent>core_link</parent>
+			<child>left_track_link</child>
+		</joint>
+
 	<!-- RIGHT TRACK -->
 		<link name = 'right_track_link'>
 			<pose relative_to = 'core_link'>0.20318559 -0.28988800 0.00242022 0 0 0</pose>
@@ -122,6 +127,11 @@
 			</collision>
 		</link>
 
+		<joint name = 'right_track_joint' type = 'fixed'>
+			<parent>core_link</parent>
+			<child>right_track_link</child>
+		</joint>
+
 	<!-- LIDAR -->
 		<link name = 'lidar_link'>
 			<pose relative_to = 'core_link'>0.64957717 0 0.42478867 3.1415926 0.3490659 0</pose>
@@ -147,15 +157,55 @@
 				</geometry>
 			</visual>
 
-			<!-- <collision name = 'lidar_collision'>
+			<collision name = 'lidar_collision'>
+				<pose relative_to = 'lidar_link'>0 0 -0.006 0 0 0</pose>
 				<geometry>
-					<mesh>
+					<!-- <mesh>
 						<uri>./meshes/lance-2024-multiscan.dae</uri>
 						<scale>1 1 1</scale>
-					</mesh>
+					</mesh> -->
+					<cylinder>
+						<radius>0.048</radius>
+						<length>0.098</length>
+					</cylinder>
 				</geometry>
-			</collision> -->
+			</collision>
+
+			<sensor name='gpu_lidar' type='gpu_lidar'>
+			<pose>0 0 0 0 0 0</pose>
+				<topic>scan</topic>
+				<gz_frame_id>lance/lidar_link</gz_frame_id>
+				<update_rate>20</update_rate>
+				<lidar>
+					<!-- TODO: correct these values -->
+					<scan>
+						<horizontal>
+							<samples>640</samples>
+							<resolution>1</resolution>
+							<min_angle>-1.396263</min_angle>
+							<max_angle>1.396263</max_angle>
+						</horizontal>
+						<vertical>
+							<samples>1</samples>
+							<resolution>1</resolution>
+							<min_angle>0.0</min_angle>
+							<max_angle>0.0</max_angle>
+						</vertical>
+					</scan>
+					<range>
+						<min>0.08</min>
+						<max>10.0</max>
+						<resolution>0.01</resolution>
+					</range>
+				</lidar>
+				<visualize>true</visualize>
+			</sensor>
 		</link>
+
+		<joint name = 'lidar_joint' type = 'fixed'>
+			<parent>core_link</parent>
+			<child>lidar_link</child>
+		</joint>
 
 	</model>
 </sdf>
