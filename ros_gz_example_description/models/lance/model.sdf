@@ -132,6 +132,61 @@
 			<child>right_track_link</child>
 		</joint>
 
+	<!-- Excavation and Dump Unit -->
+		<link name = 'collection_link'>
+			<pose relative_to = 'core_link'>-0.45721441 0 0.18580822 0 -0.2617994 0</pose>
+
+			<inertial>
+				<mass>20.352</mass>
+				<inertia>
+					<ixx> 1 </ixx>
+					<ixy> -0.122 </ixy>
+					<ixz> 0.281 </ixz>
+					<iyy> 2.457 </iyy>
+					<iyz> 0.027 </iyz>
+					<izz> 2.431 </izz>
+				</inertia>
+			</inertial>
+
+			<visual name = 'hopper_visual'>
+				<geometry>
+					<mesh>
+						<uri>./meshes/lance-2024-hopper.dae</uri>
+						<scale>1 1 1</scale>
+					</mesh>
+				</geometry>
+			</visual>
+			<visual name = 'collection_visual'>
+				<geometry>
+					<mesh>
+						<uri>./meshes/lance-2024-collection.dae</uri>
+						<scale>1 1 1</scale>
+					</mesh>
+				</geometry>
+			</visual>
+
+			<collision name = 'collection_collision'>
+				<geometry>
+					<mesh>
+						<uri>./meshes/lance-2024-upper-collision.stl</uri>
+						<scale>1 1 1</scale>
+					</mesh>
+				</geometry>
+			</collision>
+		</link>
+
+		<joint name = 'dump_joint' type = 'revolute'>
+			<parent>core_link</parent>
+			<child>collection_link</child>
+			<axis>
+				<xyz>0 1 0</xyz>
+				<limit>
+					<upper>0.2617994</upper>
+					<lower>-0.2617994</lower>
+				</limit>
+			</axis>
+		</joint>
+
 	<!-- LIDAR -->
 		<link name = 'lidar_link'>
 			<pose relative_to = 'core_link'>0.64957717 0 0.42478867 3.1415926 0.3490659 0</pose>

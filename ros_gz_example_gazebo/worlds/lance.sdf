@@ -76,9 +76,31 @@
       </link>
     </model>
 
+    <model name = "artemis_arena">
+      <static>true</static>
+      <link name = "link">
+        <visual name = "visual">
+          <geometry>
+            <mesh>
+              <uri>./meshes/artemis-arena.dae</uri>
+              <scale>1 1 1</scale>
+            </mesh>
+          </geometry>
+        </visual>
+        <collision name = "collision">
+          <geometry>
+              <mesh>
+                <uri>./meshes/artemis-arena-collision.stl</uri>
+                <scale>1 1 1</scale>
+              </mesh>
+            </geometry>
+        </collision>
+      </link>
+    </model>
+
     <model name="lance">
       <self_collide>true</self_collide>
-      <pose>0 0 0 0 0 0</pose>
+      <pose>1 1 0 0 0 0</pose>
       <include merge="true">
         <uri>package://ros_gz_example_description/models/lance</uri>
       </include>
