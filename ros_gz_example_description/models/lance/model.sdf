@@ -3,6 +3,8 @@
 
 	<model name='lance'>
 
+		<link name = 'base_link'></link>
+
 		<!-- <pose relative_to='world'>0 0 0 0 0 0</pose> -->
 
 		<!-- <link name = 'test_link'>
@@ -18,11 +20,12 @@
 		</link> -->
 
 	<!-- FRAME -->
-		<link name = 'core_link'>
-			<pose relative_to = '__model__'>0 0 0.13103567 0 0 0</pose>
+		<link name = 'frame_link'>
+			<pose relative_to = 'base_link'>0 0 0.13103567 0 0 0</pose>
 
 			<inertial>
 				<mass>9.773</mass>
+				<pose>0.101 0.001 0.214 0 0 0</pose>
 				<inertia>
 					<ixx> 0.909 </ixx>
 					<ixy> -0.0001142 </ixy>
@@ -36,7 +39,7 @@
 			<visual name = 'core_visual'>
 				<geometry>
 					<mesh>
-						<uri>./meshes/lance-2024-frame.dae</uri>
+						<uri>file://$(find ros_gz_example_description)/models/lance/meshes/lance-2024-frame.dae</uri>
 						<scale>1 1 1</scale>
 					</mesh>
 				</geometry>
@@ -45,7 +48,7 @@
 			<collision name = 'core_collision'>
 				<geometry>
 					<mesh>
-						<uri>./meshes/lance-2024-frame-collision.stl</uri>
+						<uri>file://$(find ros_gz_example_description)/models/lance/meshes/lance-2024-frame-collision.stl</uri>
 						<scale>1 1 1</scale>
 					</mesh>
 				</geometry>
@@ -54,10 +57,11 @@
 
 	<!-- LEFT TRACK -->
 		<link name = 'left_track_link'>
-			<pose relative_to = 'core_link'>0.20318559 0.28988800 0.00242022 0 0 0</pose>
+			<pose relative_to = 'frame_link'>0.20318559 0.28988800 0.00242022 0 0 0</pose>
 
 			<inertial>
 				<mass>6.925</mass>
+				<pose>-0.162 0.015 0.021 0 0 0</pose>
 				<inertia>
 					<ixx> 0.073 </ixx>
 					<ixy> 0.0008 </ixy>
@@ -71,7 +75,7 @@
 			<visual name = 'left_track_visual'>
 				<geometry>
 					<mesh>
-						<uri>./meshes/lance-2024-left-track.dae</uri>
+						<uri>file://$(find ros_gz_example_description)/models/lance/meshes/lance-2024-left-track.dae</uri>
 						<scale>1 1 1</scale>
 					</mesh>
 				</geometry>
@@ -80,7 +84,7 @@
 			<collision name = 'left_track_collision'>
 				<geometry>
 					<mesh>
-						<uri>./meshes/lance-2024-left-track-collision.stl</uri>
+						<uri>file://$(find ros_gz_example_description)/models/lance/meshes/lance-2024-left-track-collision.stl</uri>
 						<scale>1 1 1</scale>
 					</mesh>
 				</geometry>
@@ -88,16 +92,17 @@
 		</link>
 
 		<joint name = 'left_track_joint' type = 'fixed'>
-			<parent>core_link</parent>
+			<parent>frame_link</parent>
 			<child>left_track_link</child>
 		</joint>
 
 	<!-- RIGHT TRACK -->
 		<link name = 'right_track_link'>
-			<pose relative_to = 'core_link'>0.20318559 -0.28988800 0.00242022 0 0 0</pose>
+			<pose relative_to = 'frame_link'>0.20318559 -0.28988800 0.00242022 0 0 0</pose>
 
 			<inertial>
 				<mass>6.925</mass>
+				<pose>-0.162 -0.015 0.021 0 0 0</pose>
 				<inertia>
 					<ixx> 0.073 </ixx>
 					<ixy> -0.0006 </ixy>
@@ -111,7 +116,7 @@
 			<visual name = 'right_track_visual'>
 				<geometry>
 					<mesh>
-						<uri>./meshes/lance-2024-right-track.dae</uri>
+						<uri>file://$(find ros_gz_example_description)/models/lance/meshes/lance-2024-right-track.dae</uri>
 						<scale>1 1 1</scale>
 					</mesh>
 				</geometry>
@@ -120,7 +125,7 @@
 			<collision name = 'right_track_collision'>
 				<geometry>
 					<mesh>
-						<uri>./meshes/lance-2024-right-track-collision.stl</uri>
+						<uri>file://$(find ros_gz_example_description)/models/lance/meshes/lance-2024-right-track-collision.stl</uri>
 						<scale>1 1 1</scale>
 					</mesh>
 				</geometry>
@@ -128,16 +133,17 @@
 		</link>
 
 		<joint name = 'right_track_joint' type = 'fixed'>
-			<parent>core_link</parent>
+			<parent>frame_link</parent>
 			<child>right_track_link</child>
 		</joint>
 
 	<!-- Excavation and Dump Unit -->
 		<link name = 'collection_link'>
-			<pose relative_to = 'core_link'>-0.45721441 0 0.18580822 0 -0.2617994 0</pose>
+			<pose relative_to = 'frame_link'>-0.45721441 0 0.18580822 0 -0.2617994 0</pose>
 
 			<inertial>
 				<mass>20.352</mass>
+				<pose>0.417 -0.02 0.038 0 0 0</pose>
 				<inertia>
 					<ixx> 1 </ixx>
 					<ixy> -0.122 </ixy>
@@ -151,7 +157,7 @@
 			<visual name = 'hopper_visual'>
 				<geometry>
 					<mesh>
-						<uri>./meshes/lance-2024-hopper.dae</uri>
+						<uri>file://$(find ros_gz_example_description)/models/lance/meshes/lance-2024-hopper.dae</uri>
 						<scale>1 1 1</scale>
 					</mesh>
 				</geometry>
@@ -159,7 +165,7 @@
 			<visual name = 'collection_visual'>
 				<geometry>
 					<mesh>
-						<uri>./meshes/lance-2024-collection.dae</uri>
+						<uri>file://$(find ros_gz_example_description)/models/lance/meshes/lance-2024-collection.dae</uri>
 						<scale>1 1 1</scale>
 					</mesh>
 				</geometry>
@@ -168,7 +174,7 @@
 			<collision name = 'collection_collision'>
 				<geometry>
 					<mesh>
-						<uri>./meshes/lance-2024-upper-collision.stl</uri>
+						<uri>file://$(find ros_gz_example_description)/models/lance/meshes/lance-2024-upper-collision.stl</uri>
 						<scale>1 1 1</scale>
 					</mesh>
 				</geometry>
@@ -176,7 +182,7 @@
 		</link>
 
 		<joint name = 'dump_joint' type = 'revolute'>
-			<parent>core_link</parent>
+			<parent>frame_link</parent>
 			<child>collection_link</child>
 			<axis>
 				<xyz>0 1 0</xyz>
@@ -189,10 +195,11 @@
 
 	<!-- LIDAR -->
 		<link name = 'lidar_link'>
-			<pose relative_to = 'core_link'>0.64957717 0 0.42478867 3.1415926 0.3490659 0</pose>
+			<pose relative_to = 'frame_link'>0.64957717 0 0.42478867 3.1415926 0.3490659 0</pose>
 
 			<inertial>
 				<mass>0.7</mass>
+				<pose>1.97e-5 -0.001 -0.009 0 0 0</pose>
 				<inertia>
 					<ixx> 0.001 </ixx>
 					<ixy> 2e-8 </ixy>
@@ -206,7 +213,7 @@
 			<visual name = 'lidar_visual'>
 				<geometry>
 					<mesh>
-						<uri>./meshes/lance-2024-multiscan.dae</uri>
+						<uri>file://$(find ros_gz_example_description)/models/lance/meshes/lance-2024-multiscan.dae</uri>
 						<scale>1 1 1</scale>
 					</mesh>
 				</geometry>
@@ -216,7 +223,7 @@
 				<pose relative_to = 'lidar_link'>0 0 -0.006 0 0 0</pose>
 				<geometry>
 					<!-- <mesh>
-						<uri>./meshes/lance-2024-multiscan.dae</uri>
+						<uri>file://$(find ros_gz_example_description)/models/lance/meshes/lance-2024-multiscan.dae</uri>
 						<scale>1 1 1</scale>
 					</mesh> -->
 					<cylinder>
@@ -226,13 +233,12 @@
 				</geometry>
 			</collision>
 
-			<sensor name='gpu_lidar' type='gpu_lidar'>
-			<pose>0 0 0 0 0 0</pose>
+			<!-- <sensor name='gpu_lidar' type='gpu_lidar'>
+				<pose>0 0 0 0 0 0</pose>
 				<topic>scan</topic>
 				<gz_frame_id>lance/lidar_link</gz_frame_id>
 				<update_rate>20</update_rate>
 				<lidar>
-					<!-- TODO: correct these values -->
 					<scan>
 						<horizontal>
 							<samples>640</samples>
@@ -254,11 +260,11 @@
 					</range>
 				</lidar>
 				<visualize>true</visualize>
-			</sensor>
+			</sensor> -->
 		</link>
 
 		<joint name = 'lidar_joint' type = 'fixed'>
-			<parent>core_link</parent>
+			<parent>frame_link</parent>
 			<child>lidar_link</child>
 		</joint>
 
