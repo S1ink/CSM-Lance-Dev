@@ -1,14 +1,7 @@
 <?xml version="1.0" ?>
-<!--
-  Try sending commands:
-    gz topic -t "/model/diff_drive/cmd_vel" -m gz.msgs.Twist -p "linear: {x: 1.0}, angular: {z: -0.1}"
-    ros2 topic pub /diff_drive/cmd_vel geometry_msgs/msg/Twist "{linear: {x: 5.0, y: 0.0, z: 0.0}, angular: {x: 0.0, y: 0.0, z: -0.1}}"
-  Listen to odometry:
-    gz topic -e -t /model/diff_drive/odometry
-    ros2 topic echo /model/diff_drive/odometry
--->
 <sdf version="1.8">
   <world name="lance-playground">
+
     <plugin
       filename="gz-sim-physics-system"
       name="gz::sim::systems::Physics">
@@ -26,14 +19,6 @@
       filename="gz-sim-user-commands-system"
       name="gz::sim::systems::UserCommands">
     </plugin>
-    <plugin
-      filename="BasicSystem"
-      name="ros_gz_example_gazebo::BasicSystem">
-    </plugin>
-    <plugin
-      filename="FullSystem"
-      name="ros_gz_example_gazebo::FullSystem">
-    </plugin>
 
     <light name="sun" type="directional">
       <cast_shadows>true</cast_shadows>
@@ -49,7 +34,7 @@
       <direction>-0.5 0.1 -0.9</direction>
     </light>
 
-    <model name="ground_plane">
+    <!-- <model name="ground_plane">
       <static>true</static>
       <link name="link">
         <collision name="collision">
@@ -74,7 +59,7 @@
           </material>
         </visual>
       </link>
-    </model>
+    </model> -->
 
     <model name = "artemis_arena">
       <static>true</static>
@@ -98,7 +83,7 @@
       </link>
     </model>
 
-    <model name="lance">
+    <!-- <model name="lance">
       <self_collide>true</self_collide>
       <pose>1 1 0 0 0 0</pose>
       <include merge="true">
@@ -125,7 +110,7 @@
         <odom_frame>lance/odom</odom_frame>
         <robot_base_frame>lance</robot_base_frame>
       </plugin>
-    </model>
+    </model> -->
 
   </world>
 </sdf>
