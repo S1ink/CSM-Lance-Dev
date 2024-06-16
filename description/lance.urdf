@@ -1,5 +1,6 @@
 <?xml version="1.0"?>
-<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+<robot name="lance" xmlns:xacro="http://www.ros.org/wiki/xacro">
+<!-- ^^ xacro is needed to resolve the mesh filepaths -->
 
 	<link name = "base_link"></link>
 
@@ -10,7 +11,6 @@
 		<origin xyz = "0 0 0.13103567"/>
 	</joint>
 	<link name = 'frame_link'>
-
 		<inertial>
 			<origin xyz = "0.101 0.001 0.214"/>
 			<mass value="9.773"/>
@@ -26,17 +26,17 @@
 
 		<visual name = 'frame_visual'>
 			<geometry>
-				<mesh filename = "file://$(find lance_sim)/description/meshes/lance-2024-frame.dae" />
+				<mesh filename = "file://$(find lance_sim)/description/lance/meshes/lance-2024-frame.dae" />
 			</geometry>
 		</visual>
 
 		<collision name = 'frame_collision'>
 			<geometry>
-				<mesh filename = "file://$(find lance_sim)/description/meshes/lance-2024-frame-collision.stl" />
+				<mesh filename = "file://$(find lance_sim)/description/lance/meshes/lance-2024-frame-collision.stl" />
 			</geometry>
 		</collision>
-
 	</link>
+
 
 <!-- LEFT TRACK -->
 	<joint name = 'left_track_joint' type = 'fixed'>
@@ -45,7 +45,6 @@
 		<origin xyz = "0.20318559 0.28988800 0.00242022"/>
 	</joint>
 	<link name = 'left_track_link'>
-
 		<inertial>
 			<origin xyz = "-0.162 0.015 0.021"/>
 			<mass value="7.888"/>
@@ -61,13 +60,13 @@
 
 		<visual name = 'left_track_visual'>
 			<geometry>
-				<mesh filename = "file://$(find lance_sim)/description/meshes/lance-2024-left-track.dae" />
+				<mesh filename = "file://$(find lance_sim)/description/lance/meshes/lance-2024-left-track.dae" />
 			</geometry>
 		</visual>
 
 		<collision name = 'left_track_collision'>
 			<geometry>
-				<mesh filename = "file://$(find lance_sim)/description/meshes/lance-2024-left-track-collision.stl" />
+				<mesh filename = "file://$(find lance_sim)/description/lance/meshes/lance-2024-left-track-collision.stl" />
 			</geometry>
 		</collision>
 	</link>
@@ -79,32 +78,32 @@
 		<origin xyz = "0.20318559 -0.28988800 0.00242022"/>
 	</joint>
 	<link name = 'right_track_link'>
-
 		<inertial>
 			<origin xyz = "-0.162 -0.015 0.021"/>
 			<mass value="7.888"/>
 			<inertia
 				ixx = "0.103"
 				ixy = "-0.014"
-				ixz = "-0.05"
+				ixz = "-0.049"
 				iyy = "0.403"
-				iyz = "-0.013"
+				iyz = "-0.014"
 				izz = "0.331"
 			/>
 		</inertial>
 
 		<visual name = 'right_track_visual'>
 			<geometry>
-				<mesh filename = "file://$(find lance_sim)/description/meshes/lance-2024-right-track.dae" />
+				<mesh filename = "file://$(find lance_sim)/description/lance/meshes/lance-2024-right-track.dae" />
 			</geometry>
 		</visual>
 
 		<collision name = 'right_track_collision'>
 			<geometry>
-				<mesh filename = "file://$(find lance_sim)/description/meshes/lance-2024-right-track-collision.stl" />
+				<mesh filename = "file://$(find lance_sim)/description/lance/meshes/lance-2024-right-track-collision.stl" />
 			</geometry>
 		</collision>
 	</link>
+
 
 <!-- Excavation and Dump Unit -->
 	<joint name = 'dump_joint' type = 'revolute'>
@@ -126,7 +125,6 @@
 		<dynamics damping = "0.0" friction = "0.0" />
 	</joint>
 	<link name = 'collection_link'>
-
 		<inertial>
 			<origin xyz = "0.417 -0.02 0.038"/>
 			<mass value="20.499"/>
@@ -142,21 +140,22 @@
 
 		<visual name = 'hopper_visual'>
 			<geometry>
-				<mesh filename = "file://$(find lance_sim)/description/meshes/lance-2024-hopper.dae" />
+				<mesh filename = "file://$(find lance_sim)/description/lance/meshes/lance-2024-hopper.dae" />
 			</geometry>
 		</visual>
 		<visual name = 'collection_visual'>
 			<geometry>
-				<mesh filename = "file://$(find lance_sim)/description/meshes/lance-2024-collection.dae" />
+				<mesh filename = "file://$(find lance_sim)/description/lance/meshes/lance-2024-collection.dae" />
 			</geometry>
 		</visual>
 
 		<collision name = 'collection_collision'>
 			<geometry>
-				<mesh filename = "file://$(find lance_sim)/description/meshes/lance-2024-upper-collision.stl" />
+				<mesh filename = "file://$(find lance_sim)/description/lance/meshes/lance-2024-upper-collision.stl" />
 			</geometry>
 		</collision>
 	</link>
+
 
 <!-- LIDAR -->
 	<joint name = 'lidar_joint' type = 'fixed'>
@@ -168,7 +167,6 @@
 		/>
 	</joint>
 	<link name = 'lidar_link'>
-
 		<inertial>
 			<origin xyz = "1.97e-5 -0.001 -0.009"/>
 			<mass value="0.7"/>
@@ -184,7 +182,7 @@
 
 		<visual name = 'lidar_visual'>
 			<geometry>
-				<mesh filename = "file://$(find lance_sim)/description/meshes/lance-2024-multiscan.dae" />
+				<mesh filename = "file://$(find lance_sim)/description/lance/meshes/lance-2024-multiscan.dae" />
 			</geometry>
 		</visual>
 
@@ -197,36 +195,6 @@
 				/>
 			</geometry>
 		</collision>
-
-		<!-- <sensor name='gpu_lidar' type='gpu_lidar'>
-		<pose>0 0 0 0 0 0</pose>
-			<topic>scan</topic>
-			<gz_frame_id>lance/lidar_link</gz_frame_id>
-			<update_rate>20</update_rate>
-			<lidar>
-				<scan>
-					<horizontal>
-						<samples>640</samples>
-						<resolution>1</resolution>
-						<min_angle>-1.396263</min_angle>
-						<max_angle>1.396263</max_angle>
-					</horizontal>
-					<vertical>
-						<samples>1</samples>
-						<resolution>1</resolution>
-						<min_angle>0.0</min_angle>
-						<max_angle>0.0</max_angle>
-					</vertical>
-				</scan>
-				<range>
-					<min>0.08</min>
-					<max>10.0</max>
-					<resolution>0.01</resolution>
-				</range>
-			</lidar>
-			<visualize>true</visualize>
-		</sensor> -->
-
 	</link>
 
 </robot>

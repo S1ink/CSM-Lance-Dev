@@ -1,7 +1,7 @@
-## Robot Package Template
-
-This is a GitHub template. You can make your own copy by clicking the green "Use this template" button.
-
-It is recommended that you keep the repo/package name the same, but if you do change it, ensure you do a "Find all" using your IDE (or the built-in GitHub IDE by hitting the `.` key) and rename all instances of `lance_sim` to whatever your project's name is.
-
-Note that each directory currently has at least one file in it to ensure that git tracks the files (and, consequently, that a fresh clone has direcctories present for CMake to find). These example files can be removed if required (and the directories can be removed if `CMakeLists.txt` is adjusted accordingly).
+### Resources
+- https://articulatedrobotics.xyz/category/build-a-mobile-robot-with-ros
+- https://gazebosim.org/docs/garden/getstarted
+- https://github.com/azeey/turtlebot3_simulations/tree/new_gazebo/turtlebot3_gazebo
+- https://gazebosim.org/api/sim/8/tutorials.html
+- https://github.com/ros-controls/gz_ros2_control
+- https://gazebosim.org/api/sim/8/classgz_1_1sim_1_1systems_1_1TrackController.html
