@@ -15,7 +15,6 @@
 			<inertial>
 				<pose>0.101 0.001 0.214 0 0 0</pose>
 				<mass>9.773</mass>
-				<pose>0.101 0.001 0.214 0 0 0</pose>
 				<inertia>
 					<ixx> 1.358 </ixx>
 					<ixy> -0.001 </ixy>
@@ -29,7 +28,7 @@
 			<visual name = 'frame_visual'>
 				<geometry>
 					<mesh>
-						<uri>file://$(find ros_gz_example_description)/models/lance/meshes/lance-2024-frame.dae</uri>
+						<uri>./meshes/lance-2024-frame.dae</uri>
 						<scale>1 1 1</scale>
 					</mesh>
 				</geometry>
@@ -38,7 +37,7 @@
 			<collision name = 'frame_collision'>
 				<geometry>
 					<mesh>
-						<uri>file://$(find ros_gz_example_description)/models/lance/meshes/lance-2024-frame-collision.stl</uri>
+						<uri>./meshes/lance-2024-frame-collision.stl</uri>
 						<scale>1 1 1</scale>
 					</mesh>
 				</geometry>
@@ -70,7 +69,7 @@
 			<visual name = 'left_track_visual'>
 				<geometry>
 					<mesh>
-						<uri>file://$(find ros_gz_example_description)/models/lance/meshes/lance-2024-left-track.dae</uri>
+						<uri>./meshes/lance-2024-left-track.dae</uri>
 						<scale>1 1 1</scale>
 					</mesh>
 				</geometry>
@@ -79,7 +78,7 @@
 			<collision name = 'left_track_collision'>
 				<geometry>
 					<mesh>
-						<uri>file://$(find ros_gz_example_description)/models/lance/meshes/lance-2024-left-track-collision.stl</uri>
+						<uri>./meshes/lance-2024-left-track-collision.stl</uri>
 						<scale>1 1 1</scale>
 					</mesh>
 				</geometry>
@@ -110,7 +109,7 @@
 			<visual name = 'right_track_visual'>
 				<geometry>
 					<mesh>
-						<uri>file://$(find ros_gz_example_description)/models/lance/meshes/lance-2024-right-track.dae</uri>
+						<uri>./meshes/lance-2024-right-track.dae</uri>
 						<scale>1 1 1</scale>
 					</mesh>
 				</geometry>
@@ -119,7 +118,7 @@
 			<collision name = 'right_track_collision'>
 				<geometry>
 					<mesh>
-						<uri>file://$(find ros_gz_example_description)/models/lance/meshes/lance-2024-right-track-collision.stl</uri>
+						<uri>./meshes/lance-2024-right-track-collision.stl</uri>
 						<scale>1 1 1</scale>
 					</mesh>
 				</geometry>
@@ -158,7 +157,7 @@
 			<visual name = 'hopper_visual'>
 				<geometry>
 					<mesh>
-						<uri>file://$(find ros_gz_example_description)/models/lance/meshes/lance-2024-hopper.dae</uri>
+						<uri>./meshes/lance-2024-hopper.dae</uri>
 						<scale>1 1 1</scale>
 					</mesh>
 				</geometry>
@@ -166,7 +165,7 @@
 			<visual name = 'collection_visual'>
 				<geometry>
 					<mesh>
-						<uri>file://$(find ros_gz_example_description)/models/lance/meshes/lance-2024-collection.dae</uri>
+						<uri>./meshes/lance-2024-collection.dae</uri>
 						<scale>1 1 1</scale>
 					</mesh>
 				</geometry>
@@ -175,7 +174,7 @@
 			<collision name = 'collection_collision'>
 				<geometry>
 					<mesh>
-						<uri>file://$(find ros_gz_example_description)/models/lance/meshes/lance-2024-upper-collision.stl</uri>
+						<uri>./meshes/lance-2024-upper-collision.stl</uri>
 						<scale>1 1 1</scale>
 					</mesh>
 				</geometry>
@@ -194,7 +193,6 @@
 			<inertial>
 				<pose>1.97e-5 -0.001 -0.009 0 0 0</pose>
 				<mass>0.7</mass>
-				<pose>1.97e-5 -0.001 -0.009 0 0 0</pose>
 				<inertia>
 					<ixx> 0.001 </ixx>
 					<ixy> 2e-8 </ixy>
@@ -208,7 +206,7 @@
 			<visual name = 'lidar_visual'>
 				<geometry>
 					<mesh>
-						<uri>file://$(find ros_gz_example_description)/models/lance/meshes/lance-2024-multiscan.dae</uri>
+						<uri>./meshes/lance-2024-multiscan.dae</uri>
 						<scale>1 1 1</scale>
 					</mesh>
 				</geometry>
@@ -286,6 +284,8 @@
 			<steering_efficiency>0.5</steering_efficiency>
 			<frame_id>odom</frame_id>
 			<child_frame_id>base_link</child_frame_id>
+			<topic>/model/lance/cmd_vel</topic>
+			<tf>/model/lance/tf</tf>
 		</plugin>
 		<plugin
 			filename='gz-sim-track-controller-system'
@@ -300,6 +300,97 @@
 			<link>right_track_link</link>
 			<min_velocity>-3.0</min_velocity>
 			<max_velocity>3.0</max_velocity>
+		</plugin>
+
+		<!-- Moving Forward: W -->
+		<plugin filename="gz-sim-triggered-publisher-system"
+				name="gz::sim::systems::TriggeredPublisher">
+			<input type="gz.msgs.Int32" topic="/keyboard/keypress">
+				<match field="data">87</match>
+			</input>
+			<output type="gz.msgs.Twist" topic="/model/lance/cmd_vel">
+				linear: {x: 1.0}, angular: {z: 0.0}
+			</output>
+		</plugin>
+		<!-- Moving Backward: X -->
+		<plugin filename="gz-sim-triggered-publisher-system"
+				name="gz::sim::systems::TriggeredPublisher">
+			<input type="gz.msgs.Int32" topic="/keyboard/keypress">
+				<match field="data">88</match>
+			</input>
+			<output type="gz.msgs.Twist" topic="/model/lance/cmd_vel">
+				linear: {x: -1.0}, angular: {z: 0.0}
+			</output>
+		</plugin>
+		<!-- Stop: S -->
+		<plugin filename="gz-sim-triggered-publisher-system"
+				name="gz::sim::systems::TriggeredPublisher">
+			<input type="gz.msgs.Int32" topic="/keyboard/keypress">
+				<match field="data">83</match>
+			</input>
+			<output type="gz.msgs.Twist" topic="/model/lance/cmd_vel">
+				linear: {x: 0.0}, angular: {z: 0.0}
+			</output>
+		</plugin>
+		<!-- Left: A -->
+		<plugin filename="gz-sim-triggered-publisher-system"
+				name="gz::sim::systems::TriggeredPublisher">
+			<input type="gz.msgs.Int32" topic="/keyboard/keypress">
+				<match field="data">65</match>
+			</input>
+			<output type="gz.msgs.Twist" topic="/model/lance/cmd_vel">
+				linear: {x: 0.0}, angular: {z: 1.0}
+			</output>
+		</plugin>
+		<!-- Right: D -->
+		<plugin filename="gz-sim-triggered-publisher-system"
+				name="gz::sim::systems::TriggeredPublisher">
+			<input type="gz.msgs.Int32" topic="/keyboard/keypress">
+				<match field="data">68</match>
+			</input>
+			<output type="gz.msgs.Twist" topic="/model/lance/cmd_vel">
+				linear: {x: 0.0}, angular: {z: -1.0}
+			</output>
+		</plugin>
+		<!-- Forward Left: Q -->
+		<plugin filename="gz-sim-triggered-publisher-system"
+				name="gz::sim::systems::TriggeredPublisher">
+			<input type="gz.msgs.Int32" topic="/keyboard/keypress">
+				<match field="data">81</match>
+			</input>
+			<output type="gz.msgs.Twist" topic="/model/lance/cmd_vel">
+				linear: {x: 1.0}, angular: {z: 1.0}
+			</output>
+		</plugin>
+		<!-- Forward Right: E -->
+		<plugin filename="gz-sim-triggered-publisher-system"
+				name="gz::sim::systems::TriggeredPublisher">
+			<input type="gz.msgs.Int32" topic="/keyboard/keypress">
+				<match field="data">69</match>
+			</input>
+			<output type="gz.msgs.Twist" topic="/model/lance/cmd_vel">
+				linear: {x: 1.0}, angular: {z: -1.0}
+			</output>
+		</plugin>
+		<!-- Back Left: Z -->
+		<plugin filename="gz-sim-triggered-publisher-system"
+				name="gz::sim::systems::TriggeredPublisher">
+			<input type="gz.msgs.Int32" topic="/keyboard/keypress">
+				<match field="data">90</match>
+			</input>
+			<output type="gz.msgs.Twist" topic="/model/lance/cmd_vel">
+				linear: {x: -1.0}, angular: {z: 1.0}
+			</output>
+		</plugin>
+		<!-- Back Right: C -->
+		<plugin filename="gz-sim-triggered-publisher-system"
+				name="gz::sim::systems::TriggeredPublisher">
+			<input type="gz.msgs.Int32" topic="/keyboard/keypress">
+				<match field="data">67</match>
+			</input>
+			<output type="gz.msgs.Twist" topic="/model/lance/cmd_vel">
+				linear: {x: -1.0}, angular: {z: -1.0}
+			</output>
 		</plugin>
 
 	</model>
