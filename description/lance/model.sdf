@@ -1,42 +1,32 @@
 <?xml version="1.0" ?>
-<sdf version="1.8">
-
+<sdf version="1.10">
 	<model name='lance'>
 
 		<link name = 'base_link'></link>
 
-		<!-- <pose relative_to='world'>0 0 0 0 0 0</pose> -->
-
-		<!-- <link name = 'test_link'>
-			<pose relative_to = '__model__'>0 0 0 0 0 0</pose>
-			<visual name = 'test_visual'>
-				<geometry>
-					<mesh>
-						<uri>/mnt/c/users/hoodi/downloads/lance-2024-right-track.dae</uri>
-						<scale>3 3 3</scale>
-					</mesh>
-				</geometry>
-			</visual>
-		</link> -->
-
 	<!-- FRAME -->
+		<joint name = 'frame_joint' type = 'fixed'>
+			<parent>base_link</parent>
+			<child>frame_link</child>
+		</joint>
 		<link name = 'frame_link'>
 			<pose relative_to = 'base_link'>0 0 0.13103567 0 0 0</pose>
 
 			<inertial>
+				<pose>0.101 0.001 0.214 0 0 0</pose>
 				<mass>9.773</mass>
 				<pose>0.101 0.001 0.214 0 0 0</pose>
 				<inertia>
-					<ixx> 0.909 </ixx>
-					<ixy> -0.0001142 </ixy>
-					<ixz> -0.2698 </ixz>
-					<iyy> 1.129 </iyy>
-					<iyz> 0.002 </iyz>
-					<izz> 1.479 </izz>
+					<ixx> 1.358 </ixx>
+					<ixy> -0.001 </ixy>
+					<ixz> -0.418 </ixz>
+					<iyy> 1.677 </iyy>
+					<iyz> 0.000 </iyz>
+					<izz> 1.579 </izz>
 				</inertia>
 			</inertial>
 
-			<visual name = 'core_visual'>
+			<visual name = 'frame_visual'>
 				<geometry>
 					<mesh>
 						<uri>file://$(find ros_gz_example_description)/models/lance/meshes/lance-2024-frame.dae</uri>
@@ -45,7 +35,7 @@
 				</geometry>
 			</visual>
 
-			<collision name = 'core_collision'>
+			<collision name = 'frame_collision'>
 				<geometry>
 					<mesh>
 						<uri>file://$(find ros_gz_example_description)/models/lance/meshes/lance-2024-frame-collision.stl</uri>
@@ -55,20 +45,25 @@
 			</collision>
 		</link>
 
+
 	<!-- LEFT TRACK -->
+		<joint name = 'left_track_joint' type = 'fixed'>
+			<parent>frame_link</parent>
+			<child>left_track_link</child>
+		</joint>
 		<link name = 'left_track_link'>
 			<pose relative_to = 'frame_link'>0.20318559 0.28988800 0.00242022 0 0 0</pose>
 
 			<inertial>
-				<mass>6.925</mass>
 				<pose>-0.162 0.015 0.021 0 0 0</pose>
+				<mass>7.888</mass>
 				<inertia>
-					<ixx> 0.073 </ixx>
-					<ixy> 0.0008 </ixy>
-					<ixz> -0.032 </ixz>
-					<iyy> 0.366 </iyy>
-					<iyz> 0.0006 </iyz>
-					<izz> 0.3 </izz>
+					<ixx> 0.103 </ixx>
+					<ixy> -0.014 </ixy>
+					<ixz> -0.049 </ixz>
+					<iyy> 0.403 </iyy>
+					<iyz> 0.014 </iyz>
+					<izz> 0.331 </izz>
 				</inertia>
 			</inertial>
 
@@ -91,25 +86,24 @@
 			</collision>
 		</link>
 
-		<joint name = 'left_track_joint' type = 'fixed'>
-			<parent>frame_link</parent>
-			<child>left_track_link</child>
-		</joint>
-
 	<!-- RIGHT TRACK -->
+		<joint name = 'right_track_joint' type = 'fixed'>
+			<parent>frame_link</parent>
+			<child>right_track_link</child>
+		</joint>
 		<link name = 'right_track_link'>
 			<pose relative_to = 'frame_link'>0.20318559 -0.28988800 0.00242022 0 0 0</pose>
 
 			<inertial>
-				<mass>6.925</mass>
 				<pose>-0.162 -0.015 0.021 0 0 0</pose>
+				<mass>7.888</mass>
 				<inertia>
-					<ixx> 0.073 </ixx>
-					<ixy> -0.0006 </ixy>
-					<ixz> -0.032 </ixz>
-					<iyy> 0.366 </iyy>
-					<iyz> -0.0005 </iyz>
-					<izz> 0.3 </izz>
+					<ixx> 0.103 </ixx>
+					<ixy> -0.014 </ixy>
+					<ixz> -0.049 </ixz>
+					<iyy> 0.403 </iyy>
+					<iyz> -0.014 </iyz>
+					<izz> 0.331 </izz>
 				</inertia>
 			</inertial>
 
@@ -132,25 +126,32 @@
 			</collision>
 		</link>
 
-		<joint name = 'right_track_joint' type = 'fixed'>
-			<parent>frame_link</parent>
-			<child>right_track_link</child>
-		</joint>
 
 	<!-- Excavation and Dump Unit -->
+		<joint name = 'dump_joint' type = 'revolute'>
+			<parent>frame_link</parent>
+			<child>collection_link</child>
+			<axis>
+				<xyz>0 1 0</xyz>
+				<limit>
+					<upper>0.2617994</upper>
+					<lower>-0.2617994</lower>
+				</limit>
+			</axis>
+		</joint>
 		<link name = 'collection_link'>
 			<pose relative_to = 'frame_link'>-0.45721441 0 0.18580822 0 -0.2617994 0</pose>
 
 			<inertial>
-				<mass>20.352</mass>
 				<pose>0.417 -0.02 0.038 0 0 0</pose>
+				<mass>20.499</mass>
 				<inertia>
-					<ixx> 1 </ixx>
+					<ixx> 1.005 </ixx>
 					<ixy> -0.122 </ixy>
-					<ixz> 0.281 </ixz>
-					<iyy> 2.457 </iyy>
+					<ixz> -0.283 </ixz>
+					<iyy> 2.472 </iyy>
 					<iyz> 0.027 </iyz>
-					<izz> 2.431 </izz>
+					<izz> 2.445 </izz>
 				</inertia>
 			</inertial>
 
@@ -181,23 +182,17 @@
 			</collision>
 		</link>
 
-		<joint name = 'dump_joint' type = 'revolute'>
-			<parent>frame_link</parent>
-			<child>collection_link</child>
-			<axis>
-				<xyz>0 1 0</xyz>
-				<limit>
-					<upper>0.2617994</upper>
-					<lower>-0.2617994</lower>
-				</limit>
-			</axis>
-		</joint>
 
 	<!-- LIDAR -->
+		<joint name = 'lidar_joint' type = 'fixed'>
+			<parent>frame_link</parent>
+			<child>lidar_link</child>
+		</joint>
 		<link name = 'lidar_link'>
 			<pose relative_to = 'frame_link'>0.64957717 0 0.42478867 3.1415926 0.3490659 0</pose>
 
 			<inertial>
+				<pose>1.97e-5 -0.001 -0.009 0 0 0</pose>
 				<mass>0.7</mass>
 				<pose>1.97e-5 -0.001 -0.009 0 0 0</pose>
 				<inertia>
@@ -222,10 +217,6 @@
 			<collision name = 'lidar_collision'>
 				<pose relative_to = 'lidar_link'>0 0 -0.006 0 0 0</pose>
 				<geometry>
-					<!-- <mesh>
-						<uri>file://$(find ros_gz_example_description)/models/lance/meshes/lance-2024-multiscan.dae</uri>
-						<scale>1 1 1</scale>
-					</mesh> -->
 					<cylinder>
 						<radius>0.048</radius>
 						<length>0.098</length>
@@ -263,10 +254,53 @@
 			</sensor> -->
 		</link>
 
-		<joint name = 'lidar_joint' type = 'fixed'>
-			<parent>frame_link</parent>
-			<child>lidar_link</child>
-		</joint>
+	<!-- PLUGINS -->
+		<plugin
+			filename="gz-sim-joint-state-publisher-system"
+			name="gz::sim::systems::JointStatePublisher">
+			<topic>joint_states</topic>
+			<!-- <update_rate>30</update_rate> -->
+		</plugin>
+		<!-- <plugin
+			filename="gz-sim-odometry-publisher-system"
+			name="gz::sim::systems::OdometryPublisher">
+			<odom_frame>lance/odom</odom_frame>
+			<robot_base_frame>base_link</robot_base_frame>
+		</plugin> -->
+		<plugin
+			filename="gz-sim-pose-publisher-system"
+			name="gz::sim::systems::PosePublisher">
+			<publish_link_pose>true</publish_link_pose>
+			<use_pose_vector_msg>true</use_pose_vector_msg>
+			<static_publisher>true</static_publisher>
+			<static_update_frequency>1</static_update_frequency>
+		</plugin>
+
+		<plugin
+			filename="gz-sim-tracked-vehicle-system"
+			name="gz::sim::systems::TrackedVehicle">
+			<left_track><link>left_track_link</link></left_track>
+			<right_track><link>right_track_link</link></right_track>
+			<tracks_separation>0.579</tracks_separation>
+			<tracks_height>0.27</tracks_height>
+			<steering_efficiency>0.5</steering_efficiency>
+			<frame_id>odom</frame_id>
+			<child_frame_id>base_link</child_frame_id>
+		</plugin>
+		<plugin
+			filename='gz-sim-track-controller-system'
+			name='gz::sim::systems::TrackController'>
+			<link>left_track_link</link>
+			<min_velocity>-3.0</min_velocity>
+			<max_velocity>3.0</max_velocity>
+		</plugin>
+		<plugin 
+			filename='gz-sim-track-controller-system'
+			name='gz::sim::systems::TrackController'>
+			<link>right_track_link</link>
+			<min_velocity>-3.0</min_velocity>
+			<max_velocity>3.0</max_velocity>
+		</plugin>
 
 	</model>
 </sdf>
