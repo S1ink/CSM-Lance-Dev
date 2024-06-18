@@ -47,19 +47,19 @@
 #   direction: ROS_TO_GZ
 
 
-# # gz topic published by IMU plugin
-# - ros_topic_name: "imu"
-#   gz_topic_name: "imu"
-#   ros_type_name: "sensor_msgs/msg/Imu"
-#   gz_type_name: "gz.msgs.IMU"
-#   direction: GZ_TO_ROS
+# gz topic published by IMU plugin
+- ros_topic_name: "/lance/imu"
+  gz_topic_name: "/model/lance/lidar_imu"
+  ros_type_name: "sensor_msgs/msg/Imu"
+  gz_type_name: "gz.msgs.IMU"
+  direction: GZ_TO_ROS
 
-# # gz topic published by Sensors plugin (LIDAR)
-# - ros_topic_name: "scan"
-#   gz_topic_name: "scan"
-#   ros_type_name: "sensor_msgs/msg/LaserScan"
-#   gz_type_name: "gz.msgs.LaserScan"
-#   direction: GZ_TO_ROS
+# gz topic published by Sensors plugin (LIDAR)
+- ros_topic_name: "/lance/lidar_points"
+  gz_topic_name: "/model/lance/lidar_scan/points"
+  ros_type_name: "sensor_msgs/msg/PointCloud2"
+  gz_type_name: "gz.msgs.PointCloudPacked"
+  direction: GZ_TO_ROS
 
 # # gz topic published by Sensors plugin (Camera)
 # - ros_topic_name: "camera/camera_info"
