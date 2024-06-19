@@ -14,7 +14,7 @@
   <depend>sensor_msgs</depend>
   <depend>nav_msgs</depend>
   <depend>tf2</depend>
-  <depend>fast_lio</depend>
+  <!-- <depend>fast_lio</depend> -->
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 
