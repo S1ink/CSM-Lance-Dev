@@ -15,6 +15,8 @@ def generate_launch_description():
 
 	pkg_path = get_package_share_directory('lance_sim')
 	ros_gz_sim = get_package_share_directory('ros_gz_sim')
+	fast_lio = get_package_share_directory('fast_lio')
+
 	launch_file_dir = os.path.join( pkg_path, 'launch' )
 	world_path = os.path.join( pkg_path, 'worlds', 'artemis-arena.world' )
 
@@ -57,11 +59,23 @@ def generate_launch_description():
 		# }.items()
 	)
 	# rviz
-	rviz = Node(
+	rviz_cmd = Node(
 		package = 'rviz2',
 		executable = 'rviz2',
 		arguments = ['-d', os.path.join(pkg_path, 'config', 'sim.rviz')]
 		# condition
+	)
+
+	fast_lio_cmd = IncludeLaunchDescription(
+		PythonLaunchDescriptionSource(
+			os.path.join(fast_lio, 'launch', 'mapping.launch.py')
+		),
+		launch_arguments = {
+			'use_sim_time': use_sim_time,
+			'config_path': os.path.join(pkg_path, 'config'),
+			'config_file': 'fast_lio.yaml',
+			'rviz': 'false'
+		}.items()
 	)
 
 	ld = LaunchDescription()
@@ -72,6 +86,7 @@ def generate_launch_description():
 	ld.add_action(gzclient_cmd)
 	ld.add_action(robot_state_publisher_cmd)
 	ld.add_action(spawn_lance_cmd)
-	ld.add_action(rviz)
+	ld.add_action(rviz_cmd)
+	ld.add_action(fast_lio_cmd)
 
 	return ld

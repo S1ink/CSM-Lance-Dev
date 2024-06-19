@@ -224,9 +224,10 @@
 
 			<sensor name = 'lidar_imu' type = 'imu'>
 				<always_on>1</always_on>
-				<update_rate>50</update_rate>
+				<update_rate>20</update_rate>
 				<visualize>true</visualize>
 				<topic>/model/lance/lidar_imu</topic>
+				<gz_frame_id>lidar_link</gz_frame_id>
 			</sensor>
 
 			<sensor name='gpu_lidar' type='gpu_lidar'>
