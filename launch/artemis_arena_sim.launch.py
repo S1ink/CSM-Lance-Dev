@@ -16,6 +16,7 @@ def generate_launch_description():
 	pkg_path = get_package_share_directory('lance_sim')
 	ros_gz_sim = get_package_share_directory('ros_gz_sim')
 	# fast_lio = get_package_share_directory('fast_lio')
+	dlio = get_package_share_directory('direct_lidar_inertial_odometry')
 
 	launch_file_dir = os.path.join( pkg_path, 'launch' )
 	world_path = os.path.join( pkg_path, 'worlds', 'artemis-arena.world' )
@@ -77,6 +78,22 @@ def generate_launch_description():
 	# 		'rviz': 'false'
 	# 	}.items()
 	# )
+	dlio_cmd = Node(
+		package = 'direct_lidar_inertial_odometry',
+		executable = 'dlio_odom_node',
+		output = 'screen',
+		parameters = [os.path.join(pkg_path, 'config', 'dlio.yaml')],
+		remappings = [
+			('pointcloud', '/lance/lidar_points'),
+            ('imu', '/lance/imu'),
+            ('odom', 'dlio/odom_node/odom'),
+            ('pose', 'dlio/odom_node/pose'),
+            ('path', 'dlio/odom_node/path'),
+            ('kf_pose', 'dlio/odom_node/keyframes'),
+            ('kf_cloud', 'dlio/odom_node/pointcloud/keyframe'),
+            ('deskewed', 'dlio/odom_node/pointcloud/deskewed')
+		]
+	)
 
 	ld = LaunchDescription()
 
@@ -88,5 +105,6 @@ def generate_launch_description():
 	ld.add_action(spawn_lance_cmd)
 	ld.add_action(rviz_cmd)
 	# ld.add_action(fast_lio_cmd)
+	ld.add_action(dlio_cmd)
 
 	return ld

@@ -1,0 +1,81 @@
+/**:
+  ros__parameters:
+    version: 1.1.1
+
+    adaptive: true
+
+    pointcloud/deskew: true
+    pointcloud/voxelize: true
+
+    imu/calibration: true
+    imu/intrinsics/gyro/bias: [ 0.0, 0.0, 0.0 ]
+    imu/intrinsics/accel/bias: [ 0.0, 0.0, 0.0 ]
+  # scale-misalignment matrix
+    imu/intrinsics/accel/sm:  [ 1., 0., 0.,
+                                0., 1., 0.,
+                                0., 0., 1. ]
+  # center of gravity to imu translation and rotation
+    extrinsics/baselink2imu/t:  [ 0.65, 0.0, 0.556 ]
+    extrinsics/baselink2imu/R:  [ 0.9396926,  0.0000000,  0.3420202,
+                                  0.0000000, -1.0000000, -0.0000000,
+                                  0.3420202,  0.0000000, -0.9396926 ]
+  # center of gravity to lidar translation and rotation
+    extrinsics/baselink2lidar/t:  [ 0.65, 0.0, 0.556 ]
+    extrinsics/baselink2lidar/R:  [ 0.9396926,  0.0000000,  0.3420202,
+                                    0.0000000, -1.0000000, -0.0000000,
+                                    0.3420202,  0.0000000, -0.9396926 ]
+
+    use_sim_time: true
+  # frame id in which the robot moves
+    frames/odom: odom
+  # robot base frame id
+    frames/baselink: base_link
+  # lidar frame id
+    frames/lidar: dlio_ref
+  # imu frame id
+    frames/imu: dlio_ref
+
+    map/waitUntilMove: false
+    map/dense/filtered: false
+    map/sparse/leafSize: 0.25
+
+    odom/gravity: 9.80665
+    odom/computeTimeOffset: true
+
+    odom/imu/approximateGravity: false
+    odom/imu/calibration/gyro: true
+    odom/imu/calibration/accel: true
+    odom/imu/calibration/time: 2.0
+    odom/imu/bufferSize: 2500
+
+  # cropbox filter
+    odom/preprocessing/cropBoxFilter/size: 0.8
+  # voxel cell resolution (meters)
+    odom/preprocessing/voxelFilter/res: 0.1
+
+  # keyframe thresholds
+    odom/keyframe/threshD: 1.0
+    odom/keyframe/threshR: 45.0
+
+  # submap
+    odom/submap/keyframe/knn: 10
+    odom/submap/keyframe/kcv: 10
+    odom/submap/keyframe/kcc: 10
+
+  # gicp
+    odom/gicp/minNumPoints: 64
+    odom/gicp/kCorrespondences: 16
+    odom/gicp/maxCorrespondenceDistance: 0.5
+    odom/gicp/maxIterations: 32
+    odom/gicp/transformationEpsilon: 0.01
+    odom/gicp/rotationEpsilon: 0.01
+    odom/gicp/initLambdaFactor: 1e-9
+
+  # "geometric observer"
+    odom/geo/Kp: 4.5
+    odom/geo/Kv: 11.25
+    odom/geo/Kq: 4.0
+    odom/geo/Kab: 2.25
+    odom/geo/Kgb: 1.0
+    odom/geo/abias_max: 5.0
+    odom/geo/gbias_max: 0.5
