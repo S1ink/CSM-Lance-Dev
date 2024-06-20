@@ -105,6 +105,6 @@ def generate_launch_description():
 	ld.add_action(spawn_lance_cmd)
 	ld.add_action(rviz_cmd)
 	# ld.add_action(fast_lio_cmd)
-	ld.add_action(dlio_cmd)
+	# ld.add_action(dlio_cmd)
 
 	return ld
