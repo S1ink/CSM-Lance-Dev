@@ -70,6 +70,26 @@ def lidarslam_launch_description(this_pkg, use_sim_time):
 
     return LaunchDescription([mapping_node, graph_based_slam_node])
 
+def dlo_launch_description(this_pkg, use_sim_time):
+
+    dlo_node = Node(
+		name = 'dlo_odom',
+		package = 'direct_lidar_odometry',
+		executable = 'dlo_odom_node',
+		output = 'screen',
+		parameters = [os.path.join(this_pkg, 'config', 'dlo.yaml')],
+		remappings = [
+			('pointcloud', '/lance/lidar_points'),
+			('imu', '/lance/imu'),
+			('odom', 'dlo/odom'),
+			('pose', 'dlo/pose'),
+			('kfs', 'dlo/odom/keyframe'),
+			('keyframe', 'dlo/pointcloud/keyframe')
+		]
+	)
+
+    return LaunchDescription([dlo_node])
+
 
 def generate_launch_description():
     _self = get_package_share_directory('lance_sim')
@@ -77,4 +97,5 @@ def generate_launch_description():
     use_sim_time = LaunchConfiguration('use_sim_time', default='true')
 
     # return dlio_launch_description(_self, use_sim_time)
-    return lidarslam_launch_description(_self, use_sim_time)
+    # return lidarslam_launch_description(_self, use_sim_time)
+    return dlo_launch_description(_self, use_sim_time)

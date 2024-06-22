@@ -45,16 +45,16 @@
     odom/imu/approximateGravity: false
     odom/imu/calibration/gyro: true
     odom/imu/calibration/accel: true
-    odom/imu/calibration/time: 2.0
+    odom/imu/calibration/time: 3.0
     odom/imu/bufferSize: 2500
 
   # cropbox filter
-    odom/preprocessing/cropBoxFilter/size: 0.8
+    odom/preprocessing/cropBoxFilter/size: 0.5
   # voxel cell resolution (meters)
     odom/preprocessing/voxelFilter/res: 0.05
 
   # keyframe thresholds
-    odom/keyframe/threshD: 1.0
+    odom/keyframe/threshD: 5.0
     odom/keyframe/threshR: 45.0
 
   # submap
