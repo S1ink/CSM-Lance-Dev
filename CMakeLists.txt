@@ -15,11 +15,20 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
+if(NOT MSVC)
+  if(NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE Release)
+  endif()
+endif()
+
 # find dependencies
 find_package(ament_cmake REQUIRED)
-# uncomment the following section in order to fill in
-# further dependencies manually.
-# find_package(<dependency> REQUIRED)
+find_package(rclcpp REQUIRED)
+find_package(geometry_msgs REQUIRED)
+find_package(sensor_msgs REQUIRED)
+find_package(tf2_ros REQUIRED)
+find_package(tf2_sensor_msgs REQUIRED)
+find_package(tf2_geometry_msgs REQUIRED)
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
@@ -31,6 +40,24 @@ if(BUILD_TESTING)
   #set(ament_cmake_cpplint_FOUND TRUE)
   ament_lint_auto_find_test_dependencies()
 endif()
+
+set(project_src "${CMAKE_CURRENT_LIST_DIR}/src")
+
+add_executable(rectifier_node "${project_src}/rectifier/rectifier.cpp")
+
+ament_target_dependencies(rectifier_node
+  "rclcpp"
+  "geometry_msgs"
+  "sensor_msgs"
+  "tf2_ros"
+  "tf2_sensor_msgs"
+  "tf2_geometry_msgs"
+)
+
+install(
+  TARGETS rectifier_node
+  DESTINATION lib/${PROJECT_NAME}
+)
 
 install(
   DIRECTORY config description launch worlds

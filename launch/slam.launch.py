@@ -72,6 +72,19 @@ def lidarslam_launch_description(this_pkg, use_sim_time):
 
 def dlo_launch_description(this_pkg, use_sim_time):
 
+    rectifier_node = Node(
+        name = 'tf_rectifier',
+        package = 'lance_sim',
+        executable = 'rectifier_node',
+        output = 'screen',
+        remappings = [
+            ('imu', '/lance/imu'),
+            ('pointcloud', '/lance/lidar_points'),
+            ('rectified_imu', '/lance/rectified/imu'),
+            ('rectified_pc', '/lance/rectified/lidar_points')
+        ]
+    )
+
     dlo_node = Node(
 		name = 'dlo_odom',
 		package = 'direct_lidar_odometry',
@@ -79,8 +92,8 @@ def dlo_launch_description(this_pkg, use_sim_time):
 		output = 'screen',
 		parameters = [os.path.join(this_pkg, 'config', 'dlo.yaml')],
 		remappings = [
-			('pointcloud', '/lance/lidar_points'),
-			('imu', '/lance/imu'),
+			('pointcloud', '/lance/rectified/lidar_points'),
+			('imu', '/lance/rectified/imu'),
 			('odom', 'dlo/odom'),
 			('pose', 'dlo/pose'),
 			('kfs', 'dlo/odom/keyframe'),
@@ -88,7 +101,7 @@ def dlo_launch_description(this_pkg, use_sim_time):
 		]
 	)
 
-    return LaunchDescription([dlo_node])
+    return LaunchDescription([rectifier_node, dlo_node])
 
 
 def generate_launch_description():
