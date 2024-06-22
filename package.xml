@@ -15,7 +15,8 @@
   <depend>nav_msgs</depend>
   <depend>tf2</depend>
   <!-- <depend>fast_lio</depend> -->
-   <depend>direct_lidar_inertial_odometry</depend>
+  <!-- <depend>direct_lidar_inertial_odometry</depend> -->
+  <depend>lidarslam</depend>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 
