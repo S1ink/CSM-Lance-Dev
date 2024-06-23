@@ -52,3 +52,10 @@
 #   ros_type_name: "sensor_msgs/msg/CameraInfo"
 #   gz_type_name: "gz.msgs.CameraInfo"
 #   direction: GZ_TO_ROS
+
+# command twist from controller
+- ros_topic_name: "/joystick_cmd_vel"
+  gz_topic_name: "/model/lance/cmd_vel"
+  ros_type_name: "geometry_msgs/msg/Twist"
+  gz_type_name: "gz.msgs.Twist"
+  direction: ROS_TO_GZ

@@ -5,7 +5,7 @@
 
     dlo/adaptiveParams: true
 
-    dlo/imu: true
+    dlo/imu: false
     dlo/gravityAlign: true
 
     dlo/odomNode/odom_frame: "dlo_odom"

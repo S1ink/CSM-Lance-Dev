@@ -56,6 +56,12 @@ def generate_launch_description():
 		# 	'y_pose': 1.0
 		# }.items()
 	)
+	# joystick control
+	joy_control_cmd = IncludeLaunchDescription(
+		PythonLaunchDescriptionSource(
+			os.path.join(launch_file_dir, 'joy_control.launch.py')
+		)
+	)
 	# slam
 	slam_impl_cmd = IncludeLaunchDescription(
 		PythonLaunchDescriptionSource(
@@ -80,6 +86,7 @@ def generate_launch_description():
 	ld.add_action(gzclient_cmd)
 	ld.add_action(robot_state_publisher_cmd)
 	ld.add_action(spawn_lance_cmd)
+	ld.add_action(joy_control_cmd)
 	ld.add_action(slam_impl_cmd)
 	ld.add_action(rviz_cmd)
 
