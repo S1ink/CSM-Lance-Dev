@@ -6,15 +6,16 @@
     dlo/adaptiveParams: true
 
     dlo/imu: true
-    dlo/gravityAlign: false
+    dlo/gravityAlign: true
 
-    dlo/odomNode/odom_frame: "odom"         #odom
-    dlo/odomNode/child_frame: "base_link"    #base_link
+    dlo/odomNode/odom_frame: "dlo_odom"
+    dlo/odomNode/child_frame: "base_link"
+    dlo/odomNode/transform_to_child: true
 
     dlo/mapNode/publishFreq: 1.0
     dlo/mapNode/leafSize: 0.1
 
-    dlo/odomNode/initialPose/use: true   #false
+    dlo/odomNode/initialPose/use: true
 
     dlo/odomNode/initialPose/position/x: 0.0
     dlo/odomNode/initialPose/position/y: 0.0
@@ -25,8 +26,12 @@
     dlo/odomNode/initialPose/orientation/y: 0.0
     dlo/odomNode/initialPose/orientation/z: 0.0
 
+    dlo/odomNode/filteredScan/use: true
+
     dlo/odomNode/preprocessing/cropBoxFilter/use: true
-    dlo/odomNode/preprocessing/cropBoxFilter/size: 0.5
+    # dlo/odomNode/preprocessing/cropBoxFilter/size: 1.0
+    dlo/odomNode/preprocessing/cropBoxFilter/min: [ -0.405, -0.37, 0.0 ]
+    dlo/odomNode/preprocessing/cropBoxFilter/max: [ 0.735, 0.37, 0.959 ]
 
     dlo/odomNode/preprocessing/voxelFilter/scan/use: true
     dlo/odomNode/preprocessing/voxelFilter/scan/res: 0.05

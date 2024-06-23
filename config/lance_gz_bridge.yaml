@@ -13,11 +13,11 @@
   direction: GZ_TO_ROS
 
 # direct sim odometry transforms
-- ros_topic_name: "/tf"
-  gz_topic_name: "/gz_odom/tf"
-  ros_type_name: "tf2_msgs/msg/TFMessage"
-  gz_type_name: "gz.msgs.Pose_V"
-  direction: GZ_TO_ROS
+# - ros_topic_name: "/tf"
+#   gz_topic_name: "/gz_odom/tf"
+#   ros_type_name: "tf2_msgs/msg/TFMessage"
+#   gz_type_name: "gz.msgs.Pose_V"
+#   direction: GZ_TO_ROS
 
 # trackedvehicle odometry
 # - ros_topic_name: "/tf"
