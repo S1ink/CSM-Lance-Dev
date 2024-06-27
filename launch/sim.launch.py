@@ -16,7 +16,10 @@ def generate_launch_description():
 	ros_gz_sim = get_package_share_directory('ros_gz_sim')
 
 	launch_file_dir = os.path.join( pkg_path, 'launch' )
-	world_path = os.path.join( pkg_path, 'worlds', 'artemis-arena.world' )
+	worlds_path = os.path.join( pkg_path, 'worlds' )
+
+	artemis_arena_world = os.path.join( worlds_path, 'artemis-arena.world' )
+	maze_world = os.path.join( worlds_path, 'maze.world' )
 
 	use_sim_time = LaunchConfiguration('use_sim_time', default='true')
 
@@ -30,7 +33,7 @@ def generate_launch_description():
 		PythonLaunchDescriptionSource(
 			os.path.join(ros_gz_sim, 'launch', 'gz_sim.launch.py')
 		),
-		launch_arguments={'gz_args': ['-r -s -v4 ', world_path], 'on_exit_shutdown': 'true', 'pause': 'true'}.items()
+		launch_arguments={'gz_args': ['-r -s -v4 ', maze_world], 'on_exit_shutdown': 'true', 'pause': 'true'}.items()
 	)
 	# start gazebo client
 	gzclient_cmd = IncludeLaunchDescription(
