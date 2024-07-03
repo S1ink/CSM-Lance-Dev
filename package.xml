@@ -17,10 +17,10 @@
   <depend>ros_gz_bridge</depend>
   <depend>ros_gz_image</depend>
   <depend>ros_gz_sim</depend>
-  <!-- <depend>fast_lio</depend> -->
+  <depend>fast_lio</depend>
   <!-- <depend>direct_lidar_inertial_odometry</depend> -->
   <!-- <depend>lidarslam</depend> -->
-  <depend>direct_lidar_odometry</depend>
+  <!-- <depend>direct_lidar_odometry</depend> -->
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 

@@ -33,7 +33,7 @@ def generate_launch_description():
 		PythonLaunchDescriptionSource(
 			os.path.join(ros_gz_sim, 'launch', 'gz_sim.launch.py')
 		),
-		launch_arguments={'gz_args': ['-r -s -v4 ', maze_world], 'on_exit_shutdown': 'true', 'pause': 'true'}.items()
+		launch_arguments={'gz_args': ['-r -s -v4 ', artemis_arena_world], 'on_exit_shutdown': 'true', 'pause': 'true'}.items()
 	)
 	# start gazebo client
 	gzclient_cmd = IncludeLaunchDescription(
