@@ -52,14 +52,14 @@ def generate_launch_description():
 		PythonLaunchDescriptionSource(
 			os.path.join(launch_file_dir, 'robot_state_publisher.launch.py')
 		),
-		launch_arguments={'use_sim_time': True}.items()
+		launch_arguments={'use_sim_time': 'true'}.items()
 	)
 	# slam
 	slam_impl_cmd = IncludeLaunchDescription(
 		PythonLaunchDescriptionSource(
 			os.path.join(launch_file_dir, 'slam.launch.py')
 		),
-		launch_arguments = {'use_sim_time': True}.items()
+		launch_arguments = {'use_sim_time': 'true'}.items()
 	)
 	# velocity publisher
 	teleop_node = Node(

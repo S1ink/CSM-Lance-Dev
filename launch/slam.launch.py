@@ -111,5 +111,5 @@ def generate_launch_description():
 
     # return dlio_launch_description(_self, use_sim_time)
     # return lidarslam_launch_description(_self, use_sim_time)
-    # return dlo_launch_description(_self, use_sim_time)
-    return fast_lio_launch_description(_self, use_sim_time)
+    return dlo_launch_description(_self, use_sim_time)
+    # return fast_lio_launch_description(_self, use_sim_time)
