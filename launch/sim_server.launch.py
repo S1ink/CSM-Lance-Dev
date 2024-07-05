@@ -20,7 +20,7 @@ def generate_launch_description():
 	artemis_arena_world = os.path.join( worlds_path, 'artemis-arena.world' )
 	maze_world = os.path.join( worlds_path, 'maze.world' )
 	
-	# config arg for world
+	# config arg for choosing which map to use
 
 	# set env vars
 	set_env_vars_resources = AppendEnvironmentVariable(
@@ -76,7 +76,7 @@ def generate_launch_description():
 	# Add the commands to the launch description
 	ld.add_action(set_env_vars_resources)
 	ld.add_action(gzserver_cmd)
-	ld.add_action(gzclient_cmd)
+	# ld.add_action(gzclient_cmd)	# config for enable/disable?
 	ld.add_action(robot_state_publisher_cmd)
 	ld.add_action(spawn_lance_cmd)
 	ld.add_action(slam_impl_cmd)
