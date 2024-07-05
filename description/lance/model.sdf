@@ -257,6 +257,8 @@
 				<topic>/model/lance/lidar_scan</topic>
 				<gz_frame_id>lidar_link</gz_frame_id>
 				<update_rate>20</update_rate>
+				<always_on>1</always_on>
+				<visualize>true</visualize>
 				<ray>
 					<scan>
 						<horizontal>
@@ -283,8 +285,51 @@
 						<stddev>0.001</stddev>
 					</noise>
 				</ray>
+			</sensor>
+
+			<sensor name='cam1' type='camera'>
+				<pose>0 0 0 3.1415926 0 0</pose>
+				<topic>/model/lance/camera_1/image</topic>
+				<gz_frame_id>lidar_link</gz_frame_id>
+				<update_rate>30</update_rate>
 				<always_on>1</always_on>
 				<visualize>true</visualize>
+				<camera>
+					<camera_info_topic>/model/lance/camera_1/camera_info</camera_info_topic>
+					<horizontal_fov>1.3</horizontal_fov>
+					<image>
+						<width>1280</width>
+						<height>720</height>
+						<format>R8G8B8</format>
+						<anti_aliasing>4</anti_aliasing>
+					</image>
+					<clip>
+						<near>0.05</near>
+						<far>100.0</far>
+					</clip>
+					<distortion>
+						<k1>0</k1>
+						<k2>0</k2>
+						<k3>0</k3>
+						<p1>0</p1>
+						<p2>0</p2>
+						<center>0.5 0.5</center>
+					</distortion>
+					<lens>
+						<type>stereographical</type>
+						<scale_to_hfov>true</scale_to_hfov>
+						<cutoff_angle>1.5707</cutoff_angle>
+						<env_texture_size>256</env_texture_size>
+						<intrinsics>
+							<fx>277</fx>
+							<fy>277</fy>
+							<cx>540</cx>
+							<cy>360</cy>
+							<s>0</s>
+						</intrinsics>
+						<!-- <projection></projection> -->
+					</lens>
+				</camera>
 			</sensor>
 		</link>
 
