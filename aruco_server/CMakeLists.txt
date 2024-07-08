@@ -46,6 +46,7 @@ ament_target_dependencies(aruco_node
   "tf2_ros"
   "cv_bridge"
   "image_transport"
+  "OpenCV"
 )
 
 install(

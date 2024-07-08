@@ -1,4 +1,36 @@
-# /**:
-#     ros__parameters:
-#         # img_topics: []
-#         # info_topics: []
+/**:
+    ros__parameters:
+        img_topics: [ "/model/lance/camera_1/image" ]
+        info_topics: [ "/model/lance/camera_1/camera_info" ]
+
+        tags_frame_id: "odom"
+        base_frame_id: "base_link"
+
+        filtering:
+            prev_transform: true
+            bounding_box: true
+            bounds_min: [ 0.2, 0.2, -0.4 ]
+            bounds_max: [ 6.68, 5., 0.3 ]
+
+        aruco_predefined_family_idx: 20     # AprilTag 36h11
+        tag_ids: [ 0., 1., 2., 3. ]
+
+        tag0: [ 0.216, 1.055, 0.54,
+                0.216, 1.055, 0.06,
+                0.216, 0.575, 0.06,
+                0.216, 0.575, 0.54 ]
+
+        tag1: [ 0.256, 0.485, 0.45,
+                0.256, 0.485, 0.05,
+                0.576, 0.245, 0.05,
+                0.576, 0.245, 0.45 ]
+
+        tag2: [ 0.646, 0.215, 0.27,
+                0.646, 0.215, 0.03,
+                0.886, 0.215, 0.03,
+                0.886, 0.215, 0.27 ]
+
+        tag3: [ 0.636, 0.215, 0.48,
+                0.636, 0.215, 0.32,
+                0.796, 0.215, 0.32,
+                0.796, 0.215, 0.48 ]
