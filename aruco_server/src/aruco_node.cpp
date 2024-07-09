@@ -1,4 +1,5 @@
 #include <string>
+#include <sstream>
 #include <memory>
 #include <chrono>
 #include <vector>
@@ -44,6 +45,7 @@ private:
 public:
 	ArucoServer() :
 		Node{ "aruco_server" },
+		img_tp{ std::shared_ptr<ArucoServer>(this, [](auto*){}) },
 		tfbuffer{ std::make_shared<rclcpp::Clock>(RCL_ROS_TIME) },
 		tflistener{ tfbuffer }
 	{
@@ -86,7 +88,7 @@ public:
 		std::vector<double> tag_ids;
 		util::declare_param(this, "tag_ids", tag_ids, {});
 
-		const size_t n_tags = param_buff.size();
+		const size_t n_tags = tag_ids.size();
 		if(n_tags < 1)
 		{
 			RCLCPP_ERROR(this->get_logger(), "No tag info provided!");
@@ -98,14 +100,26 @@ public:
 			param_buff.clear();
 			const int id = static_cast<int>(tag_ids[i]);
 
-			util::declare_param(this, "tag" + id, param_buff, {});
+			std::stringstream topic;
+			topic << "tag" << id;
+			util::declare_param(this, topic.str(), param_buff, {});
 
-			if(param_buff.size() < 12) continue;
+			if(param_buff.size() < 12)
+			{
+				RCLCPP_ERROR(this->get_logger(), "Parse error or invalid data for tag [%s]", topic.str().c_str());
+				continue;
+			}
 
-			auto ptr = this->obj_tag_corners.insert({id, {}});
+			auto ptr = this->obj_tag_corners.insert(
+				{ id, {
+					static_cast<cv::Point3f>( *reinterpret_cast<cv::Point3d*>(param_buff.data() + sizeof(cv::Point3d) * 0) ),
+					static_cast<cv::Point3f>( *reinterpret_cast<cv::Point3d*>(param_buff.data() + sizeof(cv::Point3d) * 1) ),
+					static_cast<cv::Point3f>( *reinterpret_cast<cv::Point3d*>(param_buff.data() + sizeof(cv::Point3d) * 2) ),
+					static_cast<cv::Point3f>( *reinterpret_cast<cv::Point3d*>(param_buff.data() + sizeof(cv::Point3d) * 3) ),
+				} });
 			if(ptr.second)
 			{
-				memcpy(ptr.first->second.data(), param_buff.data(), sizeof(cv::Point3d) * 4);
+				// memcpy(ptr.first->second.data(), param_buff.data(), sizeof(cv::Point3d) * 4);
 				RCLCPP_INFO(this->get_logger(), "Successfully added corner points for tag %d.", id);
 			}
 			else this->obj_tag_corners.erase(id);
@@ -118,8 +132,10 @@ public:
 
 			this->sources[i].ref = this;
 			this->sources[i].image_sub =
-				this->create_subscription<sensor_msgs::msg::Image>( img_topics[i], 10,
+				this->img_tp.subscribe( img_topics[i], 1,
 					std::bind( &ArucoServer::ImageSource::img_callback, &this->sources[i], std::placeholders::_1 ) );
+				// this->create_subscription<sensor_msgs::msg::Image>( img_topics[i], 10,
+				// 	std::bind( &ArucoServer::ImageSource::img_callback, &this->sources[i], std::placeholders::_1 ) );
 					// [](const sensor_msgs::msg::Image::SharedPtr img){} );
 			this->sources[i].info_sub =
 				this->create_subscription<sensor_msgs::msg::CameraInfo>( info_topics[i], 10,
@@ -133,19 +149,21 @@ private:
 	{
 		ArucoServer* ref;
 
-		rclcpp::Subscription<sensor_msgs::msg::Image>::SharedPtr image_sub;
+		// rclcpp::Subscription<sensor_msgs::msg::Image>::SharedPtr image_sub;
+		image_transport::Subscriber image_sub;
 		rclcpp::Subscription<sensor_msgs::msg::CameraInfo>::SharedPtr info_sub;
 		cv::Mat1d
 			calibration = cv::Mat1f::zeros(3, 3),
 			undistorted_calib = cv::Mat1f::zeros(3, 3),
 			distortion = cv::Mat1f::zeros(1, 5);
 
-		bool has_recieved_info = false;
+		bool valid_calib_data = false;
 
-		void img_callback(const sensor_msgs::msg::Image::SharedPtr imf);
-		void info_callback(const sensor_msgs::msg::CameraInfo::SharedPtr info);
+		void img_callback(const sensor_msgs::msg::Image::ConstSharedPtr& imf);
+		void info_callback(const sensor_msgs::msg::CameraInfo::ConstSharedPtr& info);
 	};
 
+	image_transport::ImageTransport img_tp;
 	std::vector<ImageSource> sources;
 	rclcpp::Publisher<geometry_msgs::msg::PoseWithCovarianceStamped>::SharedPtr pose_pub;
 
@@ -157,14 +175,14 @@ private:
 
 	cv::Ptr<cv::aruco::Dictionary> aruco_dict;
 	cv::Ptr<cv::aruco::DetectorParameters> aruco_params;
-	std::unordered_map<int, std::array<cv::Point3d, 4>> obj_tag_corners;
+	std::unordered_map<int, std::array<cv::Point3f, 4>> obj_tag_corners;
 
 	struct
 	{
-		std::vector<std::vector<cv::Point2d>> tag_corners;
+		std::vector<std::vector<cv::Point2f>> tag_corners;
 		std::vector<int32_t> tag_ids;
-		std::vector<cv::Point2d> img_points;
-		std::vector<cv::Point3d> obj_points;
+		std::vector<cv::Point2f> img_points;
+		std::vector<cv::Point3f> obj_points;
 		std::vector<cv::Mat1f> tvecs, rvecs;
 		std::vector<float> eerrors;
 	} _detect;
@@ -173,36 +191,43 @@ private:
 };
 
 
-void ArucoServer::ImageSource::img_callback(const sensor_msgs::msg::Image::SharedPtr img)
+void ArucoServer::ImageSource::img_callback(const sensor_msgs::msg::Image::ConstSharedPtr& img)
 {
 	RCLCPP_INFO(ref->get_logger(), "FRAME RECIEVED");
 
-	if(!this->has_recieved_info) return;
+	if(!this->valid_calib_data) return;
 
 	cv_bridge::CvImageConstPtr cv_img = cv_bridge::toCvCopy(*img, "mono8");
 
 	ref->_detect.tag_corners.clear();
 	ref->_detect.tag_ids.clear();
 
-	// cv::Mat undistorted;
-	// cv::undistort(
-	// 	cv_img->image,
-	// 	undistorted,
-	// 	this->calibration,
-	// 	this->distortion,
-	// 	this->undistorted_calib);
+	try {
+		cv::Mat undistorted;
+		cv::undistort(
+			cv_img->image,
+			undistorted,
+			this->calibration,
+			this->distortion,
+			this->undistorted_calib);
+	}
+	catch(const std::exception& e)
+	{
+		RCLCPP_ERROR(ref->get_logger(), "Error undistorting image: %s", e.what());
+	}
 
-	cv::aruco::detectMarkers(
-		cv_img->image, // undistorted,
-		ref->aruco_dict,
-		ref->_detect.tag_corners,
-		ref->_detect.tag_ids,
-		ref->aruco_params);
-
-/*
-[aruco_node-8] terminate called after throwing an instance of 'cv::Exception'
-[aruco_node-8]   what():  OpenCV(4.6.0) ./modules/core/src/matrix_wrap.cpp:1393: error: (-215:Assertion failed) mtype == type0 || (CV_MAT_CN(mtype) == CV_MAT_CN(type0) && ((1 << type0) & fixedDepthMask) != 0) in function 'create'
-*/
+	try {
+		cv::aruco::detectMarkers(
+			cv_img->image, // undistorted,
+			ref->aruco_dict,
+			ref->_detect.tag_corners,
+			ref->_detect.tag_ids,
+			ref->aruco_params);
+	}
+	catch(const std::exception& e)
+	{
+		RCLCPP_ERROR(ref->get_logger(), "Error detecting markers: %s", e.what());
+	}
 
 	if(const size_t n_detected = ref->_detect.tag_ids.size(); (n_detected > 0 && n_detected == ref->_detect.tag_corners.size()))	// valid detection(s)
 	{
@@ -220,8 +245,8 @@ void ArucoServer::ImageSource::img_callback(const sensor_msgs::msg::Image::Share
 				cv::solvePnPGeneric(
 					corners,
 					ref->_detect.tag_corners[0],
-					this->calibration, // this->undistorted_calib,
-					this->distortion, // cv::noArray(),
+					this->undistorted_calib,
+					cv::noArray(),
 					ref->_detect.rvecs,
 					ref->_detect.tvecs,
 					false,
@@ -251,18 +276,27 @@ void ArucoServer::ImageSource::img_callback(const sensor_msgs::msg::Image::Share
 				}
 			}
 
-			cv::solvePnPGeneric(
-				ref->_detect.obj_points,
-				ref->_detect.img_points,
-				this->calibration, // this->undistorted_calib,
-				this->distortion, // cv::noArray(),
-				ref->_detect.rvecs,
-				ref->_detect.tvecs,
-				false,
-				cv::SOLVEPNP_SQPNP,
-				cv::noArray(),
-				cv::noArray(),
-				ref->_detect.eerrors);
+			RCLCPP_INFO(ref->get_logger(), "MEGATAG solve params -- obj points: %lu, img points: %lu", ref->_detect.obj_points.size(), ref->_detect.img_points.size());
+
+			try
+			{
+				cv::solvePnPGeneric(
+					ref->_detect.obj_points,
+					ref->_detect.img_points,
+					this->undistorted_calib,
+					cv::noArray(),
+					ref->_detect.rvecs,
+					ref->_detect.tvecs,
+					false,
+					cv::SOLVEPNP_ITERATIVE,
+					cv::noArray(),
+					cv::noArray(),
+					ref->_detect.eerrors);
+			}
+			catch(const std::exception& e)
+			{
+				RCLCPP_ERROR(ref->get_logger(), "MEGATAG solvePnP failed: %s", e.what());
+			}
 		}
 
 		const size_t n_solutions = ref->_detect.rvecs.size();
@@ -282,18 +316,20 @@ void ArucoServer::ImageSource::img_callback(const sensor_msgs::msg::Image::Share
 	}
 }
 
-void ArucoServer::ImageSource::info_callback(const sensor_msgs::msg::CameraInfo::SharedPtr info)
+void ArucoServer::ImageSource::info_callback(const sensor_msgs::msg::CameraInfo::ConstSharedPtr& info)
 {
 	RCLCPP_INFO(ref->get_logger(), "INFO RECIEVED");
 
-	if(this->has_recieved_info) return;
-
-	this->calibration = cv::Mat(info->k, true);
-	this->calibration.reshape(1, 3);
-	if(info->d.size() == 5)
+	if(this->valid_calib_data) return;
+	if(info->k.size() == 9 && info->d.size() == 5)
+	{
+		this->calibration = cv::Mat(info->k, true);
+		this->calibration = this->calibration.reshape(0, 3);
 		this->distortion = cv::Mat(info->d, true);
+		this->distortion = this->distortion.reshape(0, 1);
+	}
 
-	RCLCPP_INFO(ref->get_logger(), "calib: %d, distort: %d", this->calibration.size().area(), this->distortion.size().area());
+	RCLCPP_INFO(ref->get_logger(), "calib: [%dx%d], distort: [%dx%d]", this->calibration.rows, this->calibration.cols, this->distortion.rows, this->distortion.cols);
 
 	try
 	{
@@ -301,14 +337,15 @@ void ArucoServer::ImageSource::info_callback(const sensor_msgs::msg::CameraInfo:
 			this->calibration,
 			this->distortion,
 			cv::Size(info->width, info->height),
-			1);
+			1,
+			cv::Size(info->width, info->height));
+
+		this->valid_calib_data = true;
 	}
 	catch(const std::exception& e)
 	{
-		RCLCPP_ERROR(ref->get_logger(), "Error getting undistorted camera matrix");
+		RCLCPP_ERROR(ref->get_logger(), "Error getting undistorted camera matrix: %s", e.what());
 	}
-
-	this->has_recieved_info = true;
 }
 
 
