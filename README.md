@@ -19,7 +19,7 @@ To run this project, you will need a ROS2 and Gazebo installation. __Currently, 
 	```bash
 	mkdir sim-ws && cd sim-ws
 	mkdir src && cd src
-	git clone https://github.com/S1ink/Gazebo-Test-Sim
+	git clone https://github.com/S1ink/Gazebo-Test-Sim --recurse-submodules
 	```
 5. Make sure all required packages are installed using rosdep:
 	```bash
@@ -27,12 +27,12 @@ To run this project, you will need a ROS2 and Gazebo installation. __Currently, 
 	```
 6. Build and source (execute when in workspace directory):
 	```bash
-	colcon build --symlink install
+	colcon build --symlink-install --executor parallel
 	source install/setup.bash
 	```
 7. Run using a launch file (this is an example of the current "main" simulation):
 	```
-	ros2 launch lance_sim artemis_arena_sim.launch.py
+	ros2 launch lance_sim sim.launch.py
 	```
 
 ## Resources

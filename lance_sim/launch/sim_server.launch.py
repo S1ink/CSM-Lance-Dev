@@ -13,6 +13,7 @@ def generate_launch_description():
 
 	pkg_path = get_package_share_directory('lance_sim')
 	ros_gz_sim = get_package_share_directory('ros_gz_sim')
+	aruco_pkg = get_package_share_directory('aruco_server')
 
 	launch_file_dir = os.path.join( pkg_path, 'launch' )
 	worlds_path = os.path.join( pkg_path, 'worlds' )
@@ -61,6 +62,12 @@ def generate_launch_description():
 		),
 		launch_arguments = {'use_sim_time': 'true'}.items()
 	)
+	# aruco server
+	aruco_server_cmd = IncludeLaunchDescription(
+		PythonLaunchDescriptionSource(
+			os.path.join(aruco_pkg, 'launch', 'aruco_server.launch.py')
+		)
+	)
 	# velocity publisher
 	teleop_node = Node(
 		name = 'teleop_node',
@@ -76,10 +83,11 @@ def generate_launch_description():
 	# Add the commands to the launch description
 	ld.add_action(set_env_vars_resources)
 	ld.add_action(gzserver_cmd)
-	# ld.add_action(gzclient_cmd)	# config for enable/disable?
+	ld.add_action(gzclient_cmd)	# config for enable/disable?
 	ld.add_action(robot_state_publisher_cmd)
 	ld.add_action(spawn_lance_cmd)
 	ld.add_action(slam_impl_cmd)
+	ld.add_action(aruco_server_cmd)
 	ld.add_action(teleop_node)
 
 	return ld

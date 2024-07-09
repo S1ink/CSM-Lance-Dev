@@ -30,8 +30,8 @@
 
     dlo/odomNode/preprocessing/cropBoxFilter/use: true
     # dlo/odomNode/preprocessing/cropBoxFilter/size: 1.0
-    dlo/odomNode/preprocessing/cropBoxFilter/min: [ -0.405, -0.37, 0.0 ]
-    dlo/odomNode/preprocessing/cropBoxFilter/max: [ 0.735, 0.37, 0.959 ]
+    dlo/odomNode/preprocessing/cropBoxFilter/min: [ -0.405, -0.38, 0.0 ]
+    dlo/odomNode/preprocessing/cropBoxFilter/max: [ 0.735, 0.38, 0.959 ]
 
     dlo/odomNode/preprocessing/voxelFilter/scan/use: true
     dlo/odomNode/preprocessing/voxelFilter/scan/res: 0.05
