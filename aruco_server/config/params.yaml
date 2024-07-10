@@ -1,7 +1,9 @@
 /**:
     ros__parameters:
-        img_topics: [ "/model/lance/camera_1/image" ]
-        info_topics: [ "/model/lance/camera_1/camera_info" ]
+        img_topics: [ "/model/lance/fwd_cam/image" ]
+        info_topics: [ "/model/lance/fwd_cam/camera_info" ]
+
+        debug_topic: "/aruco_server/debug/image"
 
         tags_frame_id: "odom"
         base_frame_id: "base_link"

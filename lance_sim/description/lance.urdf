@@ -197,4 +197,15 @@
 		</collision>
 	</link>
 
+<!-- Forward Camera -->
+	<joint name = 'fwd_cam_joint' type = 'fixed'>
+		<parent link = "frame_link" />
+		<child link = "fwd_cam_link" />
+		<origin
+			xyz = "0.72468246 0 0.51148737"
+			rpy = "-1.74532925199 0 -1.57079632679"
+		/>
+	</joint>
+	<link name = 'fwd_cam_link'></link>
+
 </robot>

@@ -53,6 +53,10 @@ public:
 		util::declare_param<std::vector<std::string>>(this, "img_topics", img_topics, {});
 		util::declare_param<std::vector<std::string>>(this, "info_topics", info_topics, {});
 
+		std::string dbg_topic;
+		util::declare_param(this, "debug_topic", dbg_topic, "aruco_server/debug/image");
+		this->debug_pub = this->img_tp.advertise(dbg_topic, 1);
+
 		const size_t
 			img_t_sz = img_topics.size(),
 			info_t_sz = info_topics.size();
@@ -165,6 +169,7 @@ private:
 
 	image_transport::ImageTransport img_tp;
 	std::vector<ImageSource> sources;
+	image_transport::Publisher debug_pub;
 	rclcpp::Publisher<geometry_msgs::msg::PoseWithCovarianceStamped>::SharedPtr pose_pub;
 
 	tf2_ros::Buffer tfbuffer;
@@ -202,23 +207,24 @@ void ArucoServer::ImageSource::img_callback(const sensor_msgs::msg::Image::Const
 	ref->_detect.tag_corners.clear();
 	ref->_detect.tag_ids.clear();
 
-	try {
-		cv::Mat undistorted;
-		cv::undistort(
-			cv_img->image,
-			undistorted,
-			this->calibration,
-			this->distortion,
-			this->undistorted_calib);
-	}
-	catch(const std::exception& e)
-	{
-		RCLCPP_ERROR(ref->get_logger(), "Error undistorting image: %s", e.what());
-	}
+	// cv::Mat undistorted;
+	// try {
+	// 	cv::undistort(
+	// 		cv_img->image,
+	// 		undistorted,
+	// 		this->calibration,
+	// 		this->distortion);
+	// }
+	// catch(const std::exception& e)
+	// {
+	// 	RCLCPP_ERROR(ref->get_logger(), "Error undistorting image: %s", e.what());
+	// 	// detect markers with original image...
+	// 	undistorted = cv_img->image;
+	// }
 
 	try {
 		cv::aruco::detectMarkers(
-			cv_img->image, // undistorted,
+			cv_img->image,
 			ref->aruco_dict,
 			ref->_detect.tag_corners,
 			ref->_detect.tag_ids,
@@ -245,8 +251,8 @@ void ArucoServer::ImageSource::img_callback(const sensor_msgs::msg::Image::Const
 				cv::solvePnPGeneric(
 					corners,
 					ref->_detect.tag_corners[0],
-					this->undistorted_calib,
-					cv::noArray(),
+					this->calibration,
+					this->distortion,
 					ref->_detect.rvecs,
 					ref->_detect.tvecs,
 					false,
@@ -283,8 +289,8 @@ void ArucoServer::ImageSource::img_callback(const sensor_msgs::msg::Image::Const
 				cv::solvePnPGeneric(
 					ref->_detect.obj_points,
 					ref->_detect.img_points,
-					this->undistorted_calib,
-					cv::noArray(),
+					this->calibration,
+					this->distortion,
 					ref->_detect.rvecs,
 					ref->_detect.tvecs,
 					false,
@@ -314,6 +320,12 @@ void ArucoServer::ImageSource::img_callback(const sensor_msgs::msg::Image::Const
 	{
 		RCLCPP_INFO(ref->get_logger(), "No tags detected in source frame.");
 	}
+
+	cv::Mat debug;
+	cv::cvtColor(cv_img->image, debug, CV_GRAY2BGR);
+	cv::aruco::drawDetectedMarkers(debug, ref->_detect.tag_corners, ref->_detect.tag_ids, cv::Scalar{0, 255, 0});
+
+	ref->debug_pub.publish(cv_bridge::CvImage(cv_img->header, "bgr8", debug).toImageMsg());
 }
 
 void ArucoServer::ImageSource::info_callback(const sensor_msgs::msg::CameraInfo::ConstSharedPtr& info)
@@ -337,7 +349,7 @@ void ArucoServer::ImageSource::info_callback(const sensor_msgs::msg::CameraInfo:
 			this->calibration,
 			this->distortion,
 			cv::Size(info->width, info->height),
-			1,
+			0.5,
 			cv::Size(info->width, info->height));
 
 		this->valid_calib_data = true;

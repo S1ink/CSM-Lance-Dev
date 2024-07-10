@@ -286,52 +286,60 @@
 					</noise>
 				</ray>
 			</sensor>
-
-			<sensor name='cam1' type='camera'>
-				<pose>0 0 0 3.1415926 0.4 0</pose>
-				<topic>/model/lance/camera_1/image</topic>
-				<gz_frame_id>lidar_link</gz_frame_id>
-				<update_rate>30</update_rate>
-				<always_on>1</always_on>
-				<visualize>true</visualize>
-				<camera>
-					<camera_info_topic>/model/lance/camera_1/camera_info</camera_info_topic>
-					<horizontal_fov>0.87</horizontal_fov>
-					<image>
-						<width>1280</width>
-						<height>720</height>
-						<format>R8G8B8</format>
-						<anti_aliasing>4</anti_aliasing>
-					</image>
-					<clip>
-						<near>0.05</near>
-						<far>100.0</far>
-					</clip>
-					<distortion>
-						<k1>0.1555</k1>
-						<k2>-1.375</k2>
-						<k3>0.000957</k3>
-						<p1>0.000541</p1>
-						<p2>2.427</p2>
-						<center>0.5 0.5</center>
-					</distortion>
-					<lens>
-						<type>stereographical</type>
-						<scale_to_hfov>true</scale_to_hfov>
-						<cutoff_angle>1.5707</cutoff_angle>
-						<env_texture_size>256</env_texture_size>
-						<intrinsics>
-							<fx>1099</fx>
-							<fy>1095</fy>
-							<cx>621</cx>
-							<cy>360</cy>
-							<s>0</s>
-						</intrinsics>
-						<!-- <projection></projection> -->
-					</lens>
-				</camera>
-			</sensor>
 		</link>
+	<!-- Forward Camera -->
+	<joint name = 'fwd_cam_joint' type = 'fixed'>
+		<parent>frame_link</parent>
+		<child>fwd_cam_link</child>
+	</joint>
+	<link name = 'fwd_cam_link'>
+		<pose relative_to = 'frame_link'>0.72468246 0 0.51148737 -1.74532925199 0 -1.57079632679</pose>
+
+		<sensor name='fwd_cam' type='camera'>
+			<pose>0 0 0 1.57079632679 -1.57079632679 0</pose>
+			<topic>/model/lance/fwd_cam/image</topic>
+			<gz_frame_id>lidar_link</gz_frame_id>
+			<update_rate>30</update_rate>
+			<always_on>1</always_on>
+			<visualize>true</visualize>
+			<camera>
+				<camera_info_topic>/model/lance/fwd_cam/camera_info</camera_info_topic>
+				<horizontal_fov>0.9</horizontal_fov>
+				<image>
+					<width>1280</width>
+					<height>720</height>
+					<format>R8G8B8</format>
+					<anti_aliasing>4</anti_aliasing>
+				</image>
+				<clip>
+					<near>0.08</near>
+					<far>100.0</far>
+				</clip>
+				<distortion>
+					<k1>0.19903941</k1>
+					<k2>-0.74796342</k2>
+					<k3>0.00199075</k3>
+					<p1>0.00354105</p1>
+					<p2>0.87606197</p2>
+					<center>0.5 0.5</center>
+				</distortion>
+				<lens>
+					<type>stereographical</type>
+					<scale_to_hfov>true</scale_to_hfov>
+					<cutoff_angle>1.5707</cutoff_angle>
+					<env_texture_size>256</env_texture_size>
+					<intrinsics>
+						<fx>502.77264231</fx>
+						<fy>502.78152803</fy>
+						<cx>640</cx>
+						<cy>360</cy>
+						<s>0</s>
+					</intrinsics>
+					<!-- <projection></projection> -->
+				</lens>
+			</camera>
+		</sensor>
+	</link>
 
 	<!-- PLUGINS -->
 		<plugin
