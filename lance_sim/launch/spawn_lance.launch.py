@@ -48,7 +48,7 @@ def generate_launch_description():
 	start_gazebo_ros_image_bridge_cmd = Node(
 		package='ros_gz_image',
 		executable='image_bridge',
-		arguments=['/model/lance/fwd_cam/image'],
+		arguments=['/model/lance/fwd_cam/image', '/model/lance/rght_cam/image', '/model/lance/left_cam/image'],
 		output='screen',
 	)
 

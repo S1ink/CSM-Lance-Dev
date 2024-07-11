@@ -288,58 +288,164 @@
 			</sensor>
 		</link>
 	<!-- Forward Camera -->
-	<joint name = 'fwd_cam_joint' type = 'fixed'>
-		<parent>frame_link</parent>
-		<child>fwd_cam_link</child>
-	</joint>
-	<link name = 'fwd_cam_link'>
-		<pose relative_to = 'frame_link'>0.72468246 0 0.51148737 -1.74532925199 0 -1.57079632679</pose>
+		<joint name = 'fwd_cam_joint' type = 'fixed'>
+			<parent>frame_link</parent>
+			<child>fwd_cam_link</child>
+		</joint>
+		<link name = 'fwd_cam_link'>
+			<pose relative_to = 'frame_link'>0.72468246 0 0.51148737 -1.74532925199 0 -1.57079632679</pose>
 
-		<sensor name='fwd_cam' type='camera'>
-			<pose>0 0 0 1.57079632679 -1.57079632679 0</pose>
-			<topic>/model/lance/fwd_cam/image</topic>
-			<gz_frame_id>lidar_link</gz_frame_id>
-			<update_rate>30</update_rate>
-			<always_on>1</always_on>
-			<visualize>true</visualize>
-			<camera>
-				<camera_info_topic>/model/lance/fwd_cam/camera_info</camera_info_topic>
-				<horizontal_fov>0.9</horizontal_fov>
-				<image>
-					<width>1280</width>
-					<height>720</height>
-					<format>R8G8B8</format>
-					<anti_aliasing>4</anti_aliasing>
-				</image>
-				<clip>
-					<near>0.08</near>
-					<far>100.0</far>
-				</clip>
-				<distortion>
-					<k1>0.19903941</k1>
-					<k2>-0.74796342</k2>
-					<k3>0.00199075</k3>
-					<p1>0.00354105</p1>
-					<p2>0.87606197</p2>
-					<center>0.5 0.5</center>
-				</distortion>
-				<lens>
-					<type>stereographical</type>
-					<scale_to_hfov>true</scale_to_hfov>
-					<cutoff_angle>1.5707</cutoff_angle>
-					<env_texture_size>256</env_texture_size>
-					<intrinsics>
-						<fx>502.77264231</fx>
-						<fy>502.78152803</fy>
-						<cx>640</cx>
-						<cy>360</cy>
-						<s>0</s>
-					</intrinsics>
-					<!-- <projection></projection> -->
-				</lens>
-			</camera>
-		</sensor>
-	</link>
+			<sensor name='fwd_cam' type='camera'>
+				<pose>0 0 0 1.57079632679 -1.57079632679 0</pose>
+				<topic>/model/lance/fwd_cam/image</topic>
+				<gz_frame_id>fwd_cam_link</gz_frame_id>
+				<update_rate>30</update_rate>
+				<always_on>1</always_on>
+				<visualize>true</visualize>
+				<camera>
+					<camera_info_topic>/model/lance/fwd_cam/camera_info</camera_info_topic>
+					<horizontal_fov>1.047</horizontal_fov>
+					<image>
+						<width>640</width>
+						<height>480</height>
+						<format>R8G8B8</format>
+						<anti_aliasing>4</anti_aliasing>
+					</image>
+					<clip>
+						<near>0.08</near>
+						<far>100.0</far>
+					</clip>
+					<distortion>
+						<k1>0.2334526</k1>
+						<k2>-0.87719634</k2>
+						<k3>0.00268214</k3>
+						<p1>0.00553653</p1>
+						<p2>0.97017557</p2>
+						<center>0.5 0.5</center>
+					</distortion>
+					<lens>
+						<type>stereographical</type>
+						<scale_to_hfov>true</scale_to_hfov>
+						<cutoff_angle>1.5707</cutoff_angle>
+						<env_texture_size>256</env_texture_size>
+						<intrinsics>
+							<fx>525.08331471</fx>
+							<fy>524.34561131</fy>
+							<cx>321.73028149</cx>
+							<cy>244.12181265</cy>
+							<s>0</s>
+						</intrinsics>
+						<!-- <projection></projection> -->
+					</lens>
+				</camera>
+			</sensor>
+		</link>
+	<!-- Right Camera -->
+		<joint name = 'rght_cam_joint' type = 'fixed'>
+			<parent>frame_link</parent>
+			<child>rght_cam_link</child>
+		</joint>
+		<link name = 'rght_cam_link'>
+			<pose relative_to = 'frame_link'>-0.06416965 -0.28448800 0.22203322 -1.57079632679 0 3.1415926</pose>
+
+			<sensor name='rght_cam' type='camera'>
+				<pose>0 0 0 1.57079632679 -1.57079632679 0</pose>
+				<topic>/model/lance/rght_cam/image</topic>
+				<gz_frame_id>rght_cam_link</gz_frame_id>
+				<update_rate>30</update_rate>
+				<always_on>1</always_on>
+				<visualize>true</visualize>
+				<camera>
+					<camera_info_topic>/model/lance/rght_cam/camera_info</camera_info_topic>
+					<horizontal_fov>1.047</horizontal_fov>
+					<image>
+						<width>640</width>
+						<height>480</height>
+						<format>R8G8B8</format>
+						<anti_aliasing>4</anti_aliasing>
+					</image>
+					<clip>
+						<near>0.08</near>
+						<far>100.0</far>
+					</clip>
+					<distortion>
+						<k1>0.23879134</k1>
+						<k2>-0.94403776</k2>
+						<k3>-0.0017436</k3>
+						<p1>0.00305515</p1>
+						<p2>1.14485391</p2>
+						<center>0.5 0.5</center>
+					</distortion>
+					<lens>
+						<type>stereographical</type>
+						<scale_to_hfov>true</scale_to_hfov>
+						<cutoff_angle>1.5707</cutoff_angle>
+						<env_texture_size>256</env_texture_size>
+						<intrinsics>
+							<fx>521.06512431</fx>
+							<fy>521.28236255</fy>
+							<cx>320.42556535</cx>
+							<cy>242.55116183</cy>
+							<s>0</s>
+						</intrinsics>
+						<!-- <projection></projection> -->
+					</lens>
+				</camera>
+			</sensor>
+		</link>
+	<!-- Forward Camera -->
+		<joint name = 'left_cam_joint' type = 'fixed'>
+			<parent>frame_link</parent>
+			<child>left_cam_link</child>
+		</joint>
+		<link name = 'left_cam_link'>
+			<pose relative_to = 'frame_link'>-0.06416965 0.28448800 0.22203322 -1.57079632679 0 0</pose>
+
+			<sensor name='left_cam' type='camera'>
+				<pose>0 0 0 1.57079632679 -1.57079632679 0</pose>
+				<topic>/model/lance/left_cam/image</topic>
+				<gz_frame_id>left_cam_link</gz_frame_id>
+				<update_rate>30</update_rate>
+				<always_on>1</always_on>
+				<visualize>true</visualize>
+				<camera>
+					<camera_info_topic>/model/lance/left_cam/camera_info</camera_info_topic>
+					<horizontal_fov>1.047</horizontal_fov>
+					<image>
+						<width>640</width>
+						<height>480</height>
+						<format>R8G8B8</format>
+						<anti_aliasing>4</anti_aliasing>
+					</image>
+					<clip>
+						<near>0.08</near>
+						<far>100.0</far>
+					</clip>
+					<distortion>
+						<k1>0.19903941</k1>
+						<k2>-0.74796342</k2>
+						<k3>0.00199075</k3>
+						<p1>0.00354105</p1>
+						<p2>0.87606197</p2>
+						<center>0.5 0.5</center>
+					</distortion>
+					<lens>
+						<type>stereographical</type>
+						<scale_to_hfov>true</scale_to_hfov>
+						<cutoff_angle>1.5707</cutoff_angle>
+						<env_texture_size>256</env_texture_size>
+						<intrinsics>
+							<fx>502.77264231</fx>
+							<fy>502.78152803</fy>
+							<cx>322.89582315</cx>
+							<cy>241.45546177</cy>
+							<s>0</s>
+						</intrinsics>
+						<!-- <projection></projection> -->
+					</lens>
+				</camera>
+			</sensor>
+		</link>
 
 	<!-- PLUGINS -->
 		<plugin

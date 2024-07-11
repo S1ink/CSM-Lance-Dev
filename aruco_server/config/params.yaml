@@ -1,12 +1,19 @@
 /**:
     ros__parameters:
-        img_topics: [ "/model/lance/fwd_cam/image" ]
-        info_topics: [ "/model/lance/fwd_cam/camera_info" ]
+        img_topics: [ "/model/lance/fwd_cam/image",
+                        "/model/lance/rght_cam/image",
+                        "/model/lance/left_cam/image" ]
+        info_topics: [ "/model/lance/fwd_cam/camera_info",
+                        "/model/lance/rght_cam/camera_info",
+                        "/model/lance/left_cam/camera_info" ]
 
         debug_topic: "/aruco_server/debug/image"
+        debug_pub_freq: 30
 
-        tags_frame_id: "odom"
+        tags_frame_id: "dlo_odom"
         base_frame_id: "base_link"
+
+        pose_pub_topic: "/aruco_server/pose"
 
         filtering:
             prev_transform: true

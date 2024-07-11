@@ -208,4 +208,26 @@
 	</joint>
 	<link name = 'fwd_cam_link'></link>
 
+<!-- Right Camera -->
+	<joint name = 'rght_cam_joint' type = 'fixed'>
+		<parent link = "frame_link" />
+		<child link = "rght_cam_link" />
+		<origin
+			xyz = "-0.06416965 -0.28448800 0.22203322"
+			rpy = "-1.57079632679 0 3.1415926"
+		/>
+	</joint>
+	<link name = 'rght_cam_link'></link>
+
+<!-- Left Camera -->
+	<joint name = 'left_cam_joint' type = 'fixed'>
+		<parent link = "frame_link" />
+		<child link = "left_cam_link" />
+		<origin
+			xyz = "-0.06416965 0.28448800 0.22203322"
+			rpy = "-1.57079632679 0 0"
+		/>
+	</joint>
+	<link name = 'left_cam_link'></link>
+
 </robot>

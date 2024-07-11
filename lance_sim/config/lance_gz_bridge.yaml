@@ -52,6 +52,16 @@
   ros_type_name: "sensor_msgs/msg/CameraInfo"
   gz_type_name: "gz.msgs.CameraInfo"
   direction: GZ_TO_ROS
+- ros_topic_name: "/model/lance/rght_cam/camera_info"
+  gz_topic_name: "/model/lance/rght_cam/camera_info"
+  ros_type_name: "sensor_msgs/msg/CameraInfo"
+  gz_type_name: "gz.msgs.CameraInfo"
+  direction: GZ_TO_ROS
+- ros_topic_name: "/model/lance/left_cam/camera_info"
+  gz_topic_name: "/model/lance/left_cam/camera_info"
+  ros_type_name: "sensor_msgs/msg/CameraInfo"
+  gz_type_name: "gz.msgs.CameraInfo"
+  direction: GZ_TO_ROS
 
 # command twist from controller
 - ros_topic_name: "/joystick_cmd_vel"
