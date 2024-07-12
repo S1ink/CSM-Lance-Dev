@@ -4,6 +4,7 @@
 #include <chrono>
 #include <vector>
 #include <array>
+#include <format>
 #include <functional>
 #include <unordered_map>
 
@@ -129,15 +130,28 @@ public:
 
 			auto ptr = this->obj_tag_corners.insert(
 				{ id, {
-					static_cast<cv::Point3f>( *reinterpret_cast<cv::Point3d*>(param_buff.data() + sizeof(cv::Point3d) * 0) ),
-					static_cast<cv::Point3f>( *reinterpret_cast<cv::Point3d*>(param_buff.data() + sizeof(cv::Point3d) * 1) ),
-					static_cast<cv::Point3f>( *reinterpret_cast<cv::Point3d*>(param_buff.data() + sizeof(cv::Point3d) * 2) ),
-					static_cast<cv::Point3f>( *reinterpret_cast<cv::Point3d*>(param_buff.data() + sizeof(cv::Point3d) * 3) ),
+					static_cast<cv::Point3f>( *reinterpret_cast<cv::Point3d*>(param_buff.data() + 0) ),
+					static_cast<cv::Point3f>( *reinterpret_cast<cv::Point3d*>(param_buff.data() + 3) ),
+					static_cast<cv::Point3f>( *reinterpret_cast<cv::Point3d*>(param_buff.data() + 6) ),
+					static_cast<cv::Point3f>( *reinterpret_cast<cv::Point3d*>(param_buff.data() + 9) ),
 				} });
 			if(ptr.second)
 			{
 				// memcpy(ptr.first->second.data(), param_buff.data(), sizeof(cv::Point3d) * 4);
-				RCLCPP_INFO(this->get_logger(), "Successfully added corner points for tag %d.", id);
+				RCLCPP_INFO(this->get_logger(), "Successfully added corner points for tag %d :\n[\n\t(%f, %f, %f),\n\t(%f, %f, %f),\n\t(%f, %f, %f),\n\t(%f, %f, %f)\n]",
+					id,
+					ptr.first->second[0].x,
+					ptr.first->second[0].y,
+					ptr.first->second[0].z,
+					ptr.first->second[1].x,
+					ptr.first->second[1].y,
+					ptr.first->second[1].z,
+					ptr.first->second[2].x,
+					ptr.first->second[2].y,
+					ptr.first->second[2].z,
+					ptr.first->second[3].x,
+					ptr.first->second[3].y,
+					ptr.first->second[3].z);
 			}
 			else this->obj_tag_corners.erase(id);
 		}
@@ -248,6 +262,7 @@ void ArucoServer::ImageSource::img_callback(const sensor_msgs::msg::Image::Const
 	if(!this->valid_calib_data) return;
 
 	cv_bridge::CvImageConstPtr cv_img = cv_bridge::toCvCopy(*img, "mono8");
+	cv::cvtColor(cv_img->image, this->last_frame, CV_GRAY2BGR);
 
 	ref->_detect.tag_corners.clear();
 	ref->_detect.tag_ids.clear();
@@ -280,6 +295,8 @@ void ArucoServer::ImageSource::img_callback(const sensor_msgs::msg::Image::Const
 		RCLCPP_ERROR(ref->get_logger(), "Error detecting markers: %s", e.what());
 	}
 
+	cv::aruco::drawDetectedMarkers(this->last_frame, ref->_detect.tag_corners, ref->_detect.tag_ids, cv::Scalar{0, 255, 0});
+
 	if(const size_t n_detected = ref->_detect.tag_ids.size(); (n_detected > 0 && n_detected == ref->_detect.tag_corners.size()))	// valid detection(s)
 	{
 		ref->_detect.rvecs.clear();
@@ -301,31 +318,39 @@ void ArucoServer::ImageSource::img_callback(const sensor_msgs::msg::Image::Const
 
 				ref->_detect.obj_points.insert(ref->_detect.obj_points.end(), obj_corners.begin(), obj_corners.end());
 				ref->_detect.img_points.insert(ref->_detect.img_points.end(), img_corners.begin(), img_corners.end());
+
+				for(size_t x = 0; x < obj_corners.size(); x++)
+				{
+					cv::putText(this->last_frame, std::format("({}, {}, {})", obj_corners[x].x, obj_corners[x].y, obj_corners[x].z), static_cast<cv::Point>(img_corners[x]), cv::FONT_HERSHEY_DUPLEX, 0.4, cv::Scalar(255, 100, 0), 1, cv::LINE_AA);
+				}
 			}
 		}
 
 		// RCLCPP_INFO(ref->get_logger(), "MEGATAG solve params -- obj points: %lu, img points: %lu", ref->_detect.obj_points.size(), ref->_detect.img_points.size());
 
-		try
+		if(ref->_detect.obj_points.size() > 3 && ref->_detect.img_points.size() > 3)
 		{
-			cv::solvePnPGeneric(
-				ref->_detect.obj_points,
-				ref->_detect.img_points,
-				this->calibration,
-				this->distortion,
-				ref->_detect.rvecs,
-				ref->_detect.tvecs,
-				false,
-				cv::SOLVEPNP_ITERATIVE,
-				cv::noArray(),
-				cv::noArray(),
-				ref->_detect.eerrors);
+			try
+			{
+				cv::solvePnPGeneric(
+					ref->_detect.obj_points,
+					ref->_detect.img_points,
+					this->calibration,
+					this->distortion,
+					ref->_detect.rvecs,
+					ref->_detect.tvecs,
+					false,
+					cv::SOLVEPNP_SQPNP,
+					cv::noArray(),
+					cv::noArray(),
+					ref->_detect.eerrors);
 
-			RCLCPP_INFO(ref->get_logger(), "SolvePnP successfully yielded %lu solutions from %lu tag detections.", ref->_detect.tvecs.size(), n_detected);
-		}
-		catch(const std::exception& e)
-		{
-			RCLCPP_ERROR(ref->get_logger(), "SolvePnP failed with %d tag detections: %s", n_detected, e.what());
+				RCLCPP_INFO(ref->get_logger(), "SolvePnP successfully yielded %lu solutions from %lu tag detections.", ref->_detect.tvecs.size(), n_detected);
+			}
+			catch(const std::exception& e)
+			{
+				RCLCPP_ERROR(ref->get_logger(), "SolvePnP failed with %lu tag detections: %s", n_detected, e.what());
+			}
 		}
 
 		const size_t n_solutions = ref->_detect.tvecs.size();
@@ -340,20 +365,23 @@ void ArucoServer::ImageSource::img_callback(const sensor_msgs::msg::Image::Const
 				// filter
 			}
 
+			cv::drawFrameAxes(this->last_frame, this->calibration, this->distortion, _rvec, _tvec, 0.5f, 5);
+
 			Eigen::Vector3d rv;
 			Eigen::Translation3d t;
 
 			if(_rvec.depth() == CV_64F)
 				rv = *reinterpret_cast<Eigen::Vector3d*>(_rvec.data);
 			else if(_rvec.depth() == CV_32F)
-				rv = Eigen::Vector3d{ _rvec.at<float>(0), _rvec.at<float>(1), _rvec.at<float>(2) };
+				rv = Eigen::Vector3d{ _rvec.at<float>(0, 0), _rvec.at<float>(1, 0), _rvec.at<float>(2, 0) };
 			else {}
 
 			if(_tvec.depth() == CV_64F)
 				t = *reinterpret_cast<Eigen::Translation3d*>(_tvec.data);
 			else if(_tvec.depth() == CV_32F)
-				t = Eigen::Translation3d{ _tvec.at<float>(0), _tvec.at<float>(1), _tvec.at<float>(2) };
+				t = Eigen::Translation3d{ _tvec.at<float>(0, 0), _tvec.at<float>(1, 0), _tvec.at<float>(2, 0) };
 			else {}
+			// RCLCPP_INFO(ref->get_logger(), "TVEC: {%f, %f, %f}, type: %d, rows: %d, cols: %d", t.x(), t.y(), t.z(), _tvec.depth(), _tvec.rows, _tvec.cols);
 
 			Eigen::AngleAxisd r{ rv.norm(), rv.normalized() };
 			Eigen::Isometry3d _w2cam = (t * r).inverse();	// world to camera
@@ -382,6 +410,9 @@ void ArucoServer::ImageSource::img_callback(const sensor_msgs::msg::Image::Const
 			p.pose.pose.orientation = w2base.transform.rotation;
 			p.pose.pose.position = *reinterpret_cast<geometry_msgs::msg::Point*>(&w2base.transform.translation);
 			p.header = w2base.header;
+			// p.pose.pose.orientation = w2cam.transform.rotation;
+			// p.pose.pose.position = *reinterpret_cast<geometry_msgs::msg::Point*>(&w2cam.transform.translation);
+			// p.header = w2cam.header;
 
 			ref->pose_pub->publish(p);
 
@@ -412,12 +443,8 @@ void ArucoServer::ImageSource::img_callback(const sensor_msgs::msg::Image::Const
 	}
 	else
 	{
-		RCLCPP_INFO(ref->get_logger(), "No tags detected in source frame.");
+		// RCLCPP_INFO(ref->get_logger(), "No tags detected in source frame.");
 	}
-
-	// cv::Mat debug;
-	cv::cvtColor(cv_img->image, this->last_frame, CV_GRAY2BGR);
-	cv::aruco::drawDetectedMarkers(this->last_frame, ref->_detect.tag_corners, ref->_detect.tag_ids, cv::Scalar{0, 255, 0});
 
 	auto t = std::chrono::system_clock::now();
 	if(t - ref->last_publish > ref->target_pub_duration)
