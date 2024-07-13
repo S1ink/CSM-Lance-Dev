@@ -15,8 +15,8 @@
 #include <rclcpp/rclcpp.hpp>
 #include <tf2_ros/buffer.h>
 #include <tf2_ros/transform_listener.h>
+#include <tf2_ros/transform_broadcaster.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
-// #include <tf2_ros/transform_broadcaster.h>
 #include <sensor_msgs/msg/image.hpp>
 #include <sensor_msgs/msg/camera_info.hpp>
 #include <geometry_msgs/msg/pose_with_covariance_stamped.hpp>
@@ -55,7 +55,8 @@ public:
 		last_publish{ std::chrono::system_clock::now() },
 		img_tp{ std::shared_ptr<ArucoServer>(this, [](auto*){}) },
 		tfbuffer{ std::make_shared<rclcpp::Clock>(RCL_ROS_TIME) },
-		tflistener{ tfbuffer }
+		tflistener{ tfbuffer },
+		tfbroadcaster{ *this }
 	{
 		std::vector<std::string> img_topics, info_topics;
 		util::declare_param<std::vector<std::string>>(this, "img_topics", img_topics, {});
@@ -235,6 +236,7 @@ private:
 
 	tf2_ros::Buffer tfbuffer;
 	tf2_ros::TransformListener tflistener;
+	tf2_ros::TransformBroadcaster tfbroadcaster;
 	std::string tags_frame_id, base_frame_id;
 	bool filter_prev_proximity, filter_bbox;
 	cv::Point3d bbox_min, bbox_max;
@@ -373,6 +375,23 @@ void ArucoServer::ImageSource::img_callback(const sensor_msgs::msg::Image::Const
 					_tvec);
 
 				cv::drawFrameAxes(this->last_frame, this->calibration, this->distortion, _rvec, _tvec, 0.2f, 3);
+
+				cv::Mat R;
+				cv::Rodrigues(_rvec, R);
+				cv::Quatd q = cv::Quatd::createFromRotMat(R);
+
+				geometry_msgs::msg::TransformStamped tfs;
+				tfs.header = cv_img->header;
+				tfs.child_frame_id = std::format("tag_{}", ref->_detect.tag_ids[i]);
+				tfs.transform.translation.x = _tvec.at<double>(0, 0);
+				tfs.transform.translation.y = _tvec.at<double>(1, 0);
+				tfs.transform.translation.z = _tvec.at<double>(2, 0);
+				tfs.transform.rotation.w = q.w;
+				tfs.transform.rotation.x = q.x;
+				tfs.transform.rotation.y = q.y;
+				tfs.transform.rotation.z = q.z;
+
+				ref->tfbroadcaster.sendTransform(tfs);
 			}
 		}
 
@@ -390,7 +409,7 @@ void ArucoServer::ImageSource::img_callback(const sensor_msgs::msg::Image::Const
 					ref->_detect.rvecs,
 					ref->_detect.tvecs,
 					false,
-					cv::SOLVEPNP_EPNP,
+					cv::SOLVEPNP_ITERATIVE,
 					cv::noArray(),
 					cv::noArray(),
 					ref->_detect.eerrors);
@@ -415,7 +434,26 @@ void ArucoServer::ImageSource::img_callback(const sensor_msgs::msg::Image::Const
 				// filter
 			}
 
-			// cv::drawFrameAxes(this->last_frame, this->calibration, this->distortion, _rvec, _tvec, 0.5f, 5);
+			cv::drawFrameAxes(this->last_frame, this->calibration, this->distortion, _rvec, _tvec, 0.5f, 5);
+
+			{
+				cv::Mat R;
+				cv::Rodrigues(_rvec, R);
+				cv::Quatf q = cv::Quatf::createFromRotMat(R);
+
+				geometry_msgs::msg::TransformStamped tfs;
+				tfs.header = cv_img->header;
+				tfs.child_frame_id = "tags_odom";
+				tfs.transform.translation.x = _tvec.at<float>(0, 0);
+				tfs.transform.translation.y = _tvec.at<float>(1, 0);
+				tfs.transform.translation.z = _tvec.at<float>(2, 0);
+				tfs.transform.rotation.w = q.w;
+				tfs.transform.rotation.x = q.x;
+				tfs.transform.rotation.y = q.y;
+				tfs.transform.rotation.z = q.z;
+
+				ref->tfbroadcaster.sendTransform(tfs);
+			}
 
 			// Eigen::Vector3d rv;
 			// Eigen::Translation3d t;
@@ -555,7 +593,10 @@ void ArucoServer::ImageSource::info_callback(const sensor_msgs::msg::CameraInfo:
 		this->distortion = this->distortion.reshape(0, 1);
 	}
 
-	RCLCPP_INFO(ref->get_logger(), "calib: [%dx%d], distort: [%dx%d]", this->calibration.rows, this->calibration.cols, this->distortion.rows, this->distortion.cols);
+	std::stringstream ss;
+	ss << this->distortion;
+
+	RCLCPP_INFO(ref->get_logger(), "calib: [%dx%d], distort: [%dx%d] -- %s", this->calibration.rows, this->calibration.cols, this->distortion.rows, this->distortion.cols, ss.str().c_str());
 
 	try
 	{

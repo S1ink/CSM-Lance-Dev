@@ -315,17 +315,17 @@
 						<near>0.08</near>
 						<far>100.0</far>
 					</clip>
-					<distortion>
+					<!-- <distortion>
 						<k1>0.2334526</k1>
 						<k2>-0.87719634</k2>
 						<k3>0.00268214</k3>
 						<p1>0.00553653</p1>
 						<p2>0.97017557</p2>
 						<center>0.5 0.5</center>
-					</distortion>
+					</distortion> -->
 					<lens>
-						<type>stereographical</type>
-						<scale_to_hfov>true</scale_to_hfov>
+						<type>gnomonical</type>
+						<scale_to_hfov>false</scale_to_hfov>
 						<cutoff_angle>1.5707</cutoff_angle>
 						<env_texture_size>256</env_texture_size>
 						<intrinsics>
@@ -368,17 +368,17 @@
 						<near>0.08</near>
 						<far>100.0</far>
 					</clip>
-					<distortion>
+					<!-- <distortion>
 						<k1>0.23879134</k1>
 						<k2>-0.94403776</k2>
 						<k3>-0.0017436</k3>
 						<p1>0.00305515</p1>
 						<p2>1.14485391</p2>
 						<center>0.5 0.5</center>
-					</distortion>
+					</distortion> -->
 					<lens>
-						<type>stereographical</type>
-						<scale_to_hfov>true</scale_to_hfov>
+						<type>gnomonical</type>
+						<scale_to_hfov>false</scale_to_hfov>
 						<cutoff_angle>1.5707</cutoff_angle>
 						<env_texture_size>256</env_texture_size>
 						<intrinsics>
@@ -421,17 +421,17 @@
 						<near>0.08</near>
 						<far>100.0</far>
 					</clip>
-					<distortion>
+					<!-- <distortion>
 						<k1>0.19903941</k1>
 						<k2>-0.74796342</k2>
 						<k3>0.00199075</k3>
 						<p1>0.00354105</p1>
 						<p2>0.87606197</p2>
 						<center>0.5 0.5</center>
-					</distortion>
+					</distortion> -->
 					<lens>
-						<type>stereographical</type>
-						<scale_to_hfov>true</scale_to_hfov>
+						<type>gnomonical</type>
+						<scale_to_hfov>false</scale_to_hfov>
 						<cutoff_angle>1.5707</cutoff_angle>
 						<env_texture_size>256</env_texture_size>
 						<intrinsics>
