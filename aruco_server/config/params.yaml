@@ -1,11 +1,11 @@
 /**:
     ros__parameters:
-        img_topics: [ "/model/lance/fwd_cam/image",
-                        "/model/lance/rght_cam/image",
-                        "/model/lance/left_cam/image" ]
-        info_topics: [ "/model/lance/fwd_cam/camera_info",
-                        "/model/lance/rght_cam/camera_info",
-                        "/model/lance/left_cam/camera_info" ]
+        img_topics: [ "/model/lance/left_cam/image",
+                        "/model/lance/fwd_cam/image",
+                        "/model/lance/rght_cam/image" ]
+        info_topics: [ "/model/lance/left_cam/camera_info",
+                        "/model/lance/fwd_cam/camera_info",
+                        "/model/lance/rght_cam/camera_info" ]
 
         debug_topic: "/aruco_server/debug/image"
         debug_pub_freq: 30

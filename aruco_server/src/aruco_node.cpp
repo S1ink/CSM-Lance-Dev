@@ -4,6 +4,7 @@
 #include <chrono>
 #include <vector>
 #include <array>
+#include <utility>
 #include <format>
 #include <functional>
 #include <unordered_map>
@@ -23,6 +24,7 @@
 #include <cv_bridge/cv_bridge.hpp>
 #include <image_transport/image_transport.hpp>
 
+#include <opencv2/core/quaternion.hpp>
 #include <opencv2/opencv.hpp>
 #include <opencv2/calib3d.hpp>
 #include <opencv2/imgproc.hpp>
@@ -128,30 +130,60 @@ public:
 				continue;
 			}
 
+			std::array<cv::Point3f, 4> pts{
+				static_cast<cv::Point3f>( *reinterpret_cast<cv::Point3d*>(param_buff.data() + 0) ),
+				static_cast<cv::Point3f>( *reinterpret_cast<cv::Point3d*>(param_buff.data() + 3) ),
+				static_cast<cv::Point3f>( *reinterpret_cast<cv::Point3d*>(param_buff.data() + 6) ),
+				static_cast<cv::Point3f>( *reinterpret_cast<cv::Point3d*>(param_buff.data() + 9) )
+			};
+
+			cv::Vec3f
+				a = *reinterpret_cast<cv::Vec3f*>(&pts[1]) - *reinterpret_cast<cv::Vec3f*>(&pts[0]);	// x-axis of camera-esc frame
+			const float
+				len = cv::norm(a),
+				half_len = len / 2.f;
+			cv::Vec3f
+				b = *reinterpret_cast<cv::Vec3f*>(&pts[1]) - *reinterpret_cast<cv::Vec3f*>(&pts[2]),	// y-axis '''
+				c = ( a /= len ).cross( b /= len ),		// z-axis ''' (normalize all)
+				center = (*reinterpret_cast<cv::Vec3f*>(&pts[2]) + *reinterpret_cast<cv::Vec3f*>(&pts[0])) / 2.f;	// midpoint of diag
+
+			cv::Matx33f rmat;	// rotation matrix from orthogonal axes
+			memcpy(rmat.val + 00, &a, 12);
+			memcpy(rmat.val + 3, &b, 12);
+			memcpy(rmat.val + 6, &c, 12);
+
 			auto ptr = this->obj_tag_corners.insert(
-				{ id, {
-					static_cast<cv::Point3f>( *reinterpret_cast<cv::Point3d*>(param_buff.data() + 0) ),
-					static_cast<cv::Point3f>( *reinterpret_cast<cv::Point3d*>(param_buff.data() + 3) ),
-					static_cast<cv::Point3f>( *reinterpret_cast<cv::Point3d*>(param_buff.data() + 6) ),
-					static_cast<cv::Point3f>( *reinterpret_cast<cv::Point3d*>(param_buff.data() + 9) ),
-				} });
+				{
+					id,
+					{
+						std::move(pts),
+						{
+							cv::Point3f{ -half_len, +half_len, 0.f },
+							cv::Point3f{ +half_len, +half_len, 0.f },
+							cv::Point3f{ +half_len, -half_len, 0.f },
+							cv::Point3f{ -half_len, -half_len, 0.f }
+						},
+						center,
+						cv::Quatf::createFromRotMat(rmat)
+					} 
+				} );
 			if(ptr.second)
 			{
 				// memcpy(ptr.first->second.data(), param_buff.data(), sizeof(cv::Point3d) * 4);
 				RCLCPP_INFO(this->get_logger(), "Successfully added corner points for tag %d :\n[\n\t(%f, %f, %f),\n\t(%f, %f, %f),\n\t(%f, %f, %f),\n\t(%f, %f, %f)\n]",
 					id,
-					ptr.first->second[0].x,
-					ptr.first->second[0].y,
-					ptr.first->second[0].z,
-					ptr.first->second[1].x,
-					ptr.first->second[1].y,
-					ptr.first->second[1].z,
-					ptr.first->second[2].x,
-					ptr.first->second[2].y,
-					ptr.first->second[2].z,
-					ptr.first->second[3].x,
-					ptr.first->second[3].y,
-					ptr.first->second[3].z);
+					std::get<0>(ptr.first->second)[0].x,
+					std::get<0>(ptr.first->second)[0].y,
+					std::get<0>(ptr.first->second)[0].z,
+					std::get<0>(ptr.first->second)[1].x,
+					std::get<0>(ptr.first->second)[1].y,
+					std::get<0>(ptr.first->second)[1].z,
+					std::get<0>(ptr.first->second)[2].x,
+					std::get<0>(ptr.first->second)[2].y,
+					std::get<0>(ptr.first->second)[2].z,
+					std::get<0>(ptr.first->second)[3].x,
+					std::get<0>(ptr.first->second)[3].y,
+					std::get<0>(ptr.first->second)[3].z);
 			}
 			else this->obj_tag_corners.erase(id);
 		}
@@ -209,7 +241,13 @@ private:
 
 	cv::Ptr<cv::aruco::Dictionary> aruco_dict;
 	cv::Ptr<cv::aruco::DetectorParameters> aruco_params;
-	std::unordered_map<int, std::array<cv::Point3f, 4>> obj_tag_corners;
+	std::unordered_map<int,
+		std::tuple<
+			std::array<cv::Point3f, 4>,
+			std::array<cv::Point3f, 4>,
+			cv::Vec3f,
+			cv::Quatf
+		> > obj_tag_corners;
 
 	struct
 	{
@@ -313,16 +351,28 @@ void ArucoServer::ImageSource::img_callback(const sensor_msgs::msg::Image::Const
 			auto search = ref->obj_tag_corners.find(ref->_detect.tag_ids[i]);
 			if(search != ref->obj_tag_corners.end())
 			{
-				auto& obj_corners = search->second;
+				auto& result = search->second;	// tuple
+				auto& obj_corners = std::get<0>(result);
+				auto& rel_obj_corners = std::get<1>(result);
 				auto& img_corners = ref->_detect.tag_corners[i];
 
 				ref->_detect.obj_points.insert(ref->_detect.obj_points.end(), obj_corners.begin(), obj_corners.end());
 				ref->_detect.img_points.insert(ref->_detect.img_points.end(), img_corners.begin(), img_corners.end());
 
-				for(size_t x = 0; x < obj_corners.size(); x++)
-				{
-					cv::putText(this->last_frame, std::format("({}, {}, {})", obj_corners[x].x, obj_corners[x].y, obj_corners[x].z), static_cast<cv::Point>(img_corners[x]), cv::FONT_HERSHEY_DUPLEX, 0.4, cv::Scalar(255, 100, 0), 1, cv::LINE_AA);
-				}
+				// for(size_t x = 0; x < obj_corners.size(); x++)
+				// {
+				// 	cv::putText(this->last_frame, std::format("({}, {}, {})", obj_corners[x].x, obj_corners[x].y, obj_corners[x].z), static_cast<cv::Point>(img_corners[x]), cv::FONT_HERSHEY_DUPLEX, 0.4, cv::Scalar(255, 100, 0), 1, cv::LINE_AA);
+				// }
+				cv::Mat _rvec, _tvec;
+				cv::solvePnP(
+					rel_obj_corners,
+					img_corners,
+					this->calibration,
+					this->distortion,
+					_rvec,
+					_tvec);
+
+				cv::drawFrameAxes(this->last_frame, this->calibration, this->distortion, _rvec, _tvec, 0.2f, 3);
 			}
 		}
 
@@ -340,7 +390,7 @@ void ArucoServer::ImageSource::img_callback(const sensor_msgs::msg::Image::Const
 					ref->_detect.rvecs,
 					ref->_detect.tvecs,
 					false,
-					cv::SOLVEPNP_SQPNP,
+					cv::SOLVEPNP_EPNP,
 					cv::noArray(),
 					cv::noArray(),
 					ref->_detect.eerrors);
@@ -365,56 +415,94 @@ void ArucoServer::ImageSource::img_callback(const sensor_msgs::msg::Image::Const
 				// filter
 			}
 
-			cv::drawFrameAxes(this->last_frame, this->calibration, this->distortion, _rvec, _tvec, 0.5f, 5);
+			// cv::drawFrameAxes(this->last_frame, this->calibration, this->distortion, _rvec, _tvec, 0.5f, 5);
 
-			Eigen::Vector3d rv;
-			Eigen::Translation3d t;
+			// Eigen::Vector3d rv;
+			// Eigen::Translation3d t;
 
-			if(_rvec.depth() == CV_64F)
-				rv = *reinterpret_cast<Eigen::Vector3d*>(_rvec.data);
-			else if(_rvec.depth() == CV_32F)
-				rv = Eigen::Vector3d{ _rvec.at<float>(0, 0), _rvec.at<float>(1, 0), _rvec.at<float>(2, 0) };
-			else {}
+			// if(_rvec.depth() == CV_64F)
+			// 	rv = *reinterpret_cast<Eigen::Vector3d*>(_rvec.data);
+			// else if(_rvec.depth() == CV_32F)
+			// 	rv = Eigen::Vector3d{ _rvec.at<float>(0, 0), _rvec.at<float>(1, 0), _rvec.at<float>(2, 0) };
+			// else {}
 
-			if(_tvec.depth() == CV_64F)
-				t = *reinterpret_cast<Eigen::Translation3d*>(_tvec.data);
-			else if(_tvec.depth() == CV_32F)
-				t = Eigen::Translation3d{ _tvec.at<float>(0, 0), _tvec.at<float>(1, 0), _tvec.at<float>(2, 0) };
-			else {}
-			// RCLCPP_INFO(ref->get_logger(), "TVEC: {%f, %f, %f}, type: %d, rows: %d, cols: %d", t.x(), t.y(), t.z(), _tvec.depth(), _tvec.rows, _tvec.cols);
+			// if(_tvec.depth() == CV_64F)
+			// 	t = *reinterpret_cast<Eigen::Translation3d*>(_tvec.data);
+			// else if(_tvec.depth() == CV_32F)
+			// 	t = Eigen::Translation3d{ _tvec.at<float>(0, 0), _tvec.at<float>(1, 0), _tvec.at<float>(2, 0) };
+			// else {}
+			// // RCLCPP_INFO(ref->get_logger(), "TVEC: {%f, %f, %f}, type: %d, rows: %d, cols: %d", t.x(), t.y(), t.z(), _tvec.depth(), _tvec.rows, _tvec.cols);
 
-			Eigen::AngleAxisd r{ rv.norm(), rv.normalized() };
-			Eigen::Isometry3d _w2cam = (t * r).inverse();	// world to camera
-			Eigen::Quaterniond q;
-			Eigen::Vector3d v;
-			q = _w2cam.rotation();
-			v = _w2cam.translation();
+			// Eigen::AngleAxisd r{ rv.norm(), rv.normalized() };
+			// Eigen::Isometry3d _w2cam = (t * r).inverse();	// world to camera
+			// Eigen::Quaterniond q;
+			// Eigen::Vector3d v;
+			// q = _w2cam.rotation();
+			// v = _w2cam.translation();
 
-			geometry_msgs::msg::TransformStamped w2cam;
-			w2cam.transform.rotation = *reinterpret_cast<geometry_msgs::msg::Quaternion*>(&q);
-			w2cam.transform.translation = *reinterpret_cast<geometry_msgs::msg::Vector3*>(&v);
-			w2cam.header.stamp = cv_img->header.stamp;
-			w2cam.header.frame_id = ref->tags_frame_id;
-			w2cam.child_frame_id = cv_img->header.frame_id;
+			// geometry_msgs::msg::TransformStamped w2cam;
+			// w2cam.transform.rotation = *reinterpret_cast<geometry_msgs::msg::Quaternion*>(&q);
+			// w2cam.transform.translation = *reinterpret_cast<geometry_msgs::msg::Vector3*>(&v);
+			// w2cam.header.stamp = cv_img->header.stamp;
+			// w2cam.header.frame_id = ref->tags_frame_id;
+			// w2cam.child_frame_id = cv_img->header.frame_id;
 
-			const tf2::TimePoint time_point = tf2::TimePoint{
-				std::chrono::seconds{cv_img->header.stamp.sec} +
-				std::chrono::nanoseconds{cv_img->header.stamp.nanosec} };
-			const geometry_msgs::msg::TransformStamped cam2base =
-				ref->tfbuffer.lookupTransform(ref->base_frame_id, cv_img->header.frame_id, time_point);	// camera to base link
+			// const tf2::TimePoint time_point = tf2::TimePoint{
+			// 	std::chrono::seconds{cv_img->header.stamp.sec} +
+			// 	std::chrono::nanoseconds{cv_img->header.stamp.nanosec} };
+			// const geometry_msgs::msg::TransformStamped cam2base =
+			// 	ref->tfbuffer.lookupTransform(ref->base_frame_id, cv_img->header.frame_id, time_point);	// camera to base link
 
-			geometry_msgs::msg::TransformStamped w2base;	// full transform -- world to base
-			tf2::doTransform(cam2base, w2base, w2cam);
+			// geometry_msgs::msg::TransformStamped w2base;	// full transform -- world to base
+			// tf2::doTransform(cam2base, w2base, w2cam);
 
-			geometry_msgs::msg::PoseWithCovarianceStamped p;
-			p.pose.pose.orientation = w2base.transform.rotation;
-			p.pose.pose.position = *reinterpret_cast<geometry_msgs::msg::Point*>(&w2base.transform.translation);
-			p.header = w2base.header;
-			// p.pose.pose.orientation = w2cam.transform.rotation;
-			// p.pose.pose.position = *reinterpret_cast<geometry_msgs::msg::Point*>(&w2cam.transform.translation);
-			// p.header = w2cam.header;
+			// geometry_msgs::msg::PoseWithCovarianceStamped p;
+			// p.pose.pose.orientation = w2base.transform.rotation;
+			// p.pose.pose.position = *reinterpret_cast<geometry_msgs::msg::Point*>(&w2base.transform.translation);
+			// p.header = w2base.header;
+			// // p.pose.pose.orientation = w2cam.transform.rotation;
+			// // p.pose.pose.position = *reinterpret_cast<geometry_msgs::msg::Point*>(&w2cam.transform.translation);
+			// // p.header = w2cam.header;
 
-			ref->pose_pub->publish(p);
+			// try
+			// {
+			// 	const geometry_msgs::msg::TransformStamped cam2world =
+			// 		ref->tfbuffer.lookupTransform(cv_img->header.frame_id, ref->tags_frame_id, tf2::timeFromSec(0));
+
+			// 	_tvec.at<float>(0, 0) = cam2world.transform.translation.x;
+			// 	_tvec.at<float>(1, 0) = cam2world.transform.translation.y;
+			// 	_tvec.at<float>(2, 0) = cam2world.transform.translation.z;
+
+			// 	// Eigen::Matrix3f m3;
+			// 	cv::Quat<float> q{
+			// 		cam2world.transform.rotation.w,
+			// 		cam2world.transform.rotation.x,
+			// 		cam2world.transform.rotation.y,
+			// 		cam2world.transform.rotation.z };
+
+			// 	cv::Vec3f _rv = q.toRotVec();
+
+			// 	// const float angle = aa.angle();
+			// 	// _rvec.at<float>(0, 0) = aa.axis()[0] * angle;
+			// 	// _rvec.at<float>(1, 0) = aa.axis()[1] * angle;
+			// 	// _rvec.at<float>(2, 0) = aa.axis()[2] * angle;
+
+			// 	RCLCPP_INFO(ref->get_logger(), "Artificial TF: tvec: (%f, %f, %f), rvec: (%f, %f, %f)",
+			// 		_tvec.at<float>(0, 0),
+			// 		_tvec.at<float>(1, 0),
+			// 		_tvec.at<float>(2, 0),
+			// 		_rv[0],
+			// 		_rv[1],
+			// 		_rv[2]);
+
+			// 	cv::drawFrameAxes(this->last_frame, this->calibration, this->distortion, _rv, _tvec, 0.5f, 5);
+			// }
+			// catch(const std::exception& e)
+			// {
+			// 	RCLCPP_INFO(ref->get_logger(), "Debugging failure: %s", e.what());
+			// }
+
+			// ref->pose_pub->publish(p);
 
 			// Eigen::Isometry3f cam2base =
 			// 	Eigen::Translation3f{
