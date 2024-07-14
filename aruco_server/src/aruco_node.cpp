@@ -6,6 +6,7 @@
 #include <array>
 #include <utility>
 #include <format>
+#include <deque>
 #include <functional>
 #include <unordered_map>
 
@@ -103,6 +104,7 @@ protected:
 private:
 	std::unordered_map<int, TagDescription::ConstPtr> obj_tag_corners;
 	std::vector<ImageSource> sources;
+	std::deque<std::pair<std::chrono::system_clock::time_point, std::array<double, 6>>> covariance_samples;
 
 	image_transport::ImageTransport img_tp;
 	image_transport::Publisher debug_pub;
@@ -117,7 +119,7 @@ private:
 	Eigen::AlignedBox3d bbox;
 
 	std::chrono::system_clock::time_point last_publish;
-	std::chrono::duration<double> target_pub_duration;
+	std::chrono::duration<double> target_pub_duration, target_covariance_sample_history;
 
 	cv::Ptr<cv::aruco::Dictionary> aruco_dict;
 	cv::Ptr<cv::aruco::DetectorParameters> aruco_params;
@@ -183,6 +185,10 @@ ArucoServer::ArucoServer():
 	{
 		this->bbox = Eigen::AlignedBox3d{ *reinterpret_cast<Eigen::Vector3d*>(min.data()), *reinterpret_cast<Eigen::Vector3d*>(max.data()) };
 	}
+
+	double covariance_sampling_history;
+	util::declare_param(this, "covariance_sampling_history", covariance_sampling_history, 1.0);
+	this->target_covariance_sample_history = std::chrono::duration<double>{ covariance_sampling_history };
 
 	int aruco_dict_id = cv::aruco::PREDEFINED_DICTIONARY_NAME::DICT_APRILTAG_36h11;
 	util::declare_param(this, "aruco_predefined_family_idx", aruco_dict_id, aruco_dict_id);
@@ -495,6 +501,8 @@ void ArucoServer::ImageSource::img_callback(const sensor_msgs::msg::Image::Const
 				valid_prev_w2base = false;
 			}
 
+			double best_score = std::numeric_limits<double>::infinity();
+			geometry_msgs::msg::TransformStamped best_tf;
 			for(size_t i = 0; i < n_solutions; i++)
 			{
 				cv::Vec3d
@@ -549,7 +557,8 @@ void ArucoServer::ImageSource::img_callback(const sensor_msgs::msg::Image::Const
 				}
 				const bool in_bounds = !ref->filter_bbox || ref->bbox.isEmpty() || ref->bbox.contains(current_translation);
 
-				// const Eigen::Vector3d rpy = current_rotation.toRotationMatrix().eulerAngles(0, 1, 2);
+				const double score = ref->_detect.eerrors[i];
+
 				RCLCPP_INFO(ref->get_logger(),
 					"Pose candidate [%lu] -- RMS: %f -- In bounds?: %d -- Translational(cm): %f -- Rotational(deg): %f",
 					i,
@@ -558,18 +567,40 @@ void ArucoServer::ImageSource::img_callback(const sensor_msgs::msg::Image::Const
 					_ldist * 100.,
 					_rdist * 180. / M_PI);
 
-				if(i == 0)	// publish best pose
+				if(score < best_score)
 				{
-					geometry_msgs::msg::PoseWithCovarianceStamped p;
-					p.pose.pose.orientation = w2base.transform.rotation;
-					p.pose.pose.position = reinterpret_cast<geometry_msgs::msg::Point&>(w2base.transform.translation);
-					p.header = w2base.header;
-
-					// compute variance
-
-					ref->pose_pub->publish(p);
+					best_tf = w2base;
+					best_score = score;
 				}
 			}
+
+			// compute variance
+			auto _now = std::chrono::system_clock::now();
+			while(!ref->covariance_samples.empty())	// remove old samples from back
+			{
+				if(_now - ref->covariance_samples.back().first > ref->target_covariance_sample_history)
+				{
+					ref->covariance_samples.pop_back();
+				}
+				else break;
+			}
+			// push new data
+			ref->covariance_samples.push_front( { _now, {} } );
+			*reinterpret_cast<Eigen::Vector3d*>(ref->covariance_samples.front().second.data() + 0) =
+				reinterpret_cast<const Eigen::Vector3d&>(best_tf.transform.translation);
+			*reinterpret_cast<Eigen::Vector3d*>(ref->covariance_samples.front().second.data() + 3) =
+				reinterpret_cast<const Eigen::Quaterniond&>(best_tf.transform.rotation).toRotationMatrix().eulerAngles(0, 1, 2);
+
+			RCLCPP_INFO(ref->get_logger(), "Current covariance samples: %lu", ref->covariance_samples.size());
+
+			// perform calculation using remaining samples
+
+			geometry_msgs::msg::PoseWithCovarianceStamped p;
+			p.pose.pose.orientation = best_tf.transform.rotation;
+			p.pose.pose.position = reinterpret_cast<geometry_msgs::msg::Point&>(best_tf.transform.translation);
+			p.header = best_tf.header;
+
+			ref->pose_pub->publish(p);
 		}
 	}
 	else
