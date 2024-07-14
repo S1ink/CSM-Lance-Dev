@@ -395,9 +395,7 @@ void ArucoServer::ImageSource::img_callback(const sensor_msgs::msg::Image::Const
 					geometry_msgs::msg::TransformStamped tfs;
 					tfs.header = cv_img->header;
 					tfs.child_frame_id = std::format("tag_{}_s{}", ref->_detect.tag_ids[i], s);
-					tfs.transform.translation.x = _tvec[0];
-					tfs.transform.translation.y = _tvec[1];
-					tfs.transform.translation.z = _tvec[2];
+					tfs.transform.translation = reinterpret_cast<geometry_msgs::msg::Vector3&>(_tvec);
 					tfs.transform.rotation.w = q.w;
 					tfs.transform.rotation.x = q.x;
 					tfs.transform.rotation.y = q.y;
@@ -419,13 +417,13 @@ void ArucoServer::ImageSource::img_callback(const sensor_msgs::msg::Image::Const
 
 		if(matches == 1)	// reuse debug tvecs and rvecs ^^
 		{
-			Eigen::Isometry3d tf = ( reinterpret_cast<const Eigen::Translation3d&>(primary_desc->translation) *
-				Eigen::Quaterniond{ primary_desc->qw, primary_desc->qx, primary_desc->qy, primary_desc->qz } );
+			Eigen::Isometry3d tf = ( Eigen::Quaterniond{ primary_desc->qw, primary_desc->qx, primary_desc->qy, primary_desc->qz } *
+				Eigen::Translation3d{ -reinterpret_cast<const Eigen::Vector3d&>(primary_desc->translation) } );
 
 			for(size_t i = 0; i < ref->_detect.tvecs.size(); i++)
 			{
 				cv::Quatd r = cv::Quatd::createFromRvec(ref->_detect.rvecs[i]);
-				Eigen::Isometry3d _tf = ( reinterpret_cast<Eigen::Translation3d&>(ref->_detect.tvecs[i]) * Eigen::Quaterniond{ r.w, r.x, r.y, r.z } ) * tf;
+				Eigen::Isometry3d _tf = reinterpret_cast<Eigen::Translation3d&>(ref->_detect.tvecs[i]) * (Eigen::Quaterniond{ r.w, r.x, r.y, r.z } * tf);
 
 				Eigen::Vector3d _t;
 				_t = _tf.translation();
@@ -435,6 +433,8 @@ void ArucoServer::ImageSource::img_callback(const sensor_msgs::msg::Image::Const
 				_r = _tf.rotation();
 				ref->_detect.rvecs[i] = cv::Quatd{ _r.w(), _r.x(), _r.y(), _r.z() }.toRotVec();
 			}
+
+			RCLCPP_INFO(ref->get_logger(), "SolvePnP successfully yielded %lu solution(s) using 1 [COPLANAR] tag match.");
 		}
 		else if(matches > 1)
 		{
@@ -472,7 +472,7 @@ void ArucoServer::ImageSource::img_callback(const sensor_msgs::msg::Image::Const
 				std::chrono::seconds{cv_img->header.stamp.sec} +
 				std::chrono::nanoseconds{cv_img->header.stamp.nanosec} };
 			const geometry_msgs::msg::TransformStamped cam2base =
-				ref->tfbuffer.lookupTransform(cv_img->header.frame_id, ref->base_frame_id, time_point);	// camera to base link
+				ref->tfbuffer.lookupTransform(cv_img->header.frame_id, ref->base_frame_id, time_point);		// camera to base link
 
 			for(size_t i = 0; i < n_solutions; i++)
 			{
@@ -492,7 +492,7 @@ void ArucoServer::ImageSource::img_callback(const sensor_msgs::msg::Image::Const
 				qi = _w2cam.rotation();
 				vi = _w2cam.translation();
 
-				geometry_msgs::msg::TransformStamped cam2w;	// camera to tags origin
+				geometry_msgs::msg::TransformStamped cam2w;		// camera to tags origin
 				cam2w.header = cv_img->header;
 				cam2w.child_frame_id = std::format("tags_odom_{}", i);
 				cam2w.transform.translation = reinterpret_cast<geometry_msgs::msg::Vector3&>(t);
