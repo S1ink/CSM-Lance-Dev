@@ -306,8 +306,8 @@
 					<camera_info_topic>/model/lance/fwd_cam/camera_info</camera_info_topic>
 					<horizontal_fov>1.047</horizontal_fov>
 					<image>
-						<width>640</width>
-						<height>480</height>
+						<width>1280</width>
+						<height>720</height>
 						<format>R8G8B8</format>
 						<anti_aliasing>4</anti_aliasing>
 					</image>
@@ -329,10 +329,14 @@
 						<cutoff_angle>1.5707</cutoff_angle>
 						<env_texture_size>256</env_texture_size>
 						<intrinsics>
-							<fx>525.08331471</fx>
+							<fx>1099.01916</fx>
+							<fy>1095.23244</fy>
+							<cx>621.291826</cx>
+							<cy>359.862988</cy>
+							<!-- <fx>525.08331471</fx>
 							<fy>524.34561131</fy>
 							<cx>321.73028149</cx>
-							<cy>244.12181265</cy>
+							<cy>244.12181265</cy> -->
 							<s>0</s>
 						</intrinsics>
 						<!-- <projection></projection> -->
@@ -359,8 +363,8 @@
 					<camera_info_topic>/model/lance/rght_cam/camera_info</camera_info_topic>
 					<horizontal_fov>1.047</horizontal_fov>
 					<image>
-						<width>640</width>
-						<height>480</height>
+						<width>1280</width>
+						<height>720</height>
 						<format>R8G8B8</format>
 						<anti_aliasing>4</anti_aliasing>
 					</image>
@@ -382,10 +386,14 @@
 						<cutoff_angle>1.5707</cutoff_angle>
 						<env_texture_size>256</env_texture_size>
 						<intrinsics>
-							<fx>521.06512431</fx>
+							<fx>1099.01916</fx>
+							<fy>1095.23244</fy>
+							<cx>621.291826</cx>
+							<cy>359.862988</cy>
+							<!-- <fx>521.06512431</fx>
 							<fy>521.28236255</fy>
 							<cx>320.42556535</cx>
-							<cy>242.55116183</cy>
+							<cy>242.55116183</cy> -->
 							<s>0</s>
 						</intrinsics>
 						<!-- <projection></projection> -->
@@ -412,8 +420,8 @@
 					<camera_info_topic>/model/lance/left_cam/camera_info</camera_info_topic>
 					<horizontal_fov>1.047</horizontal_fov>
 					<image>
-						<width>640</width>
-						<height>480</height>
+						<width>1280</width>
+						<height>720</height>
 						<format>R8G8B8</format>
 						<anti_aliasing>4</anti_aliasing>
 					</image>
@@ -435,10 +443,14 @@
 						<cutoff_angle>1.5707</cutoff_angle>
 						<env_texture_size>256</env_texture_size>
 						<intrinsics>
-							<fx>502.77264231</fx>
+							<fx>1099.01916</fx>
+							<fy>1095.23244</fy>
+							<cx>621.291826</cx>
+							<cy>359.862988</cy>
+							<!-- <fx>502.77264231</fx>
 							<fy>502.78152803</fy>
 							<cx>322.89582315</cx>
-							<cy>241.45546177</cy>
+							<cy>241.45546177</cy> -->
 							<s>0</s>
 						</intrinsics>
 						<!-- <projection></projection> -->
