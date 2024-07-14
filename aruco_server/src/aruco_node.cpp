@@ -114,7 +114,7 @@ private:
 
 	std::string tags_frame_id, base_frame_id;
 	bool filter_prev_proximity, filter_bbox;
-	cv::Point3d bbox_min, bbox_max;
+	Eigen::AlignedBox3d bbox;
 
 	std::chrono::system_clock::time_point last_publish;
 	std::chrono::duration<double> target_pub_duration;
@@ -174,15 +174,15 @@ ArucoServer::ArucoServer():
 	util::declare_param(this, "pose_pub_topic", pose_topic, "/aruco_server/pose");
 	this->pose_pub = this->create_publisher<geometry_msgs::msg::PoseWithCovarianceStamped>(pose_topic, 10);
 
-	util::declare_param(this, "filtering/prev_transform", this->filter_prev_proximity, false);
-	util::declare_param(this, "filtering/bounding_box", this->filter_bbox, false);
-	std::vector<double> param_buff;
-	util::declare_param(this, "filtering/bounds_min", param_buff, {0., 0., 0.});
-	if(param_buff.size() > 2)
-		memcpy(&this->bbox_min, param_buff.data(), sizeof(cv::Point3d));
-	util::declare_param(this, "filtering/bounds_max", param_buff, {0., 0., 0.});
-	if(param_buff.size() > 2)
-		memcpy(&this->bbox_max, param_buff.data(), sizeof(cv::Point3d));
+	util::declare_param(this, "filtering.prev_transform", this->filter_prev_proximity, false);
+	util::declare_param(this, "filtering.bounding_box", this->filter_bbox, false);
+	std::vector<double> min, max;
+	util::declare_param(this, "filtering.bounds_min", min, {});
+	util::declare_param(this, "filtering.bounds_max", max, {});
+	if(min.size() > 2 && max.size() > 2)
+	{
+		this->bbox = Eigen::AlignedBox3d{ *reinterpret_cast<Eigen::Vector3d*>(min.data()), *reinterpret_cast<Eigen::Vector3d*>(max.data()) };
+	}
 
 	int aruco_dict_id = cv::aruco::PREDEFINED_DICTIONARY_NAME::DICT_APRILTAG_36h11;
 	util::declare_param(this, "aruco_predefined_family_idx", aruco_dict_id, aruco_dict_id);
@@ -202,6 +202,7 @@ ArucoServer::ArucoServer():
 		return;	// exit?
 	}
 
+	std::vector<double> param_buff;
 	for(size_t i = 0; i < n_tags; i++)
 	{
 		param_buff.clear();
@@ -420,7 +421,8 @@ void ArucoServer::ImageSource::img_callback(const sensor_msgs::msg::Image::Const
 			Eigen::Isometry3d tf = ( Eigen::Quaterniond{ primary_desc->qw, primary_desc->qx, primary_desc->qy, primary_desc->qz } *
 				Eigen::Translation3d{ -reinterpret_cast<const Eigen::Vector3d&>(primary_desc->translation) } );
 
-			for(size_t i = 0; i < ref->_detect.tvecs.size(); i++)
+			const size_t n_solutions = ref->_detect.tvecs.size();
+			for(size_t i = 0; i < n_solutions; i++)
 			{
 				cv::Quatd r = cv::Quatd::createFromRvec(ref->_detect.rvecs[i]);
 				Eigen::Isometry3d _tf = reinterpret_cast<Eigen::Translation3d&>(ref->_detect.tvecs[i]) * (Eigen::Quaterniond{ r.w, r.x, r.y, r.z } * tf);
@@ -434,7 +436,7 @@ void ArucoServer::ImageSource::img_callback(const sensor_msgs::msg::Image::Const
 				ref->_detect.rvecs[i] = cv::Quatd{ _r.w(), _r.x(), _r.y(), _r.z() }.toRotVec();
 			}
 
-			RCLCPP_INFO(ref->get_logger(), "SolvePnP successfully yielded %lu solution(s) using 1 [COPLANAR] tag match.");
+			RCLCPP_INFO(ref->get_logger(), "SolvePnP successfully yielded %lu solution(s) using 1 [COPLANAR] tag match.", n_solutions);
 		}
 		else if(matches > 1)
 		{
@@ -471,8 +473,27 @@ void ArucoServer::ImageSource::img_callback(const sensor_msgs::msg::Image::Const
 			const tf2::TimePoint time_point = tf2::TimePoint{
 				std::chrono::seconds{cv_img->header.stamp.sec} +
 				std::chrono::nanoseconds{cv_img->header.stamp.nanosec} };
-			const geometry_msgs::msg::TransformStamped cam2base =
-				ref->tfbuffer.lookupTransform(cv_img->header.frame_id, ref->base_frame_id, time_point);		// camera to base link
+
+			geometry_msgs::msg::TransformStamped cam2base, prev_w2base;
+			bool valid_cam2base = true, valid_prev_w2base = true;
+			try
+			{
+				cam2base = ref->tfbuffer.lookupTransform(cv_img->header.frame_id, ref->base_frame_id, time_point);		// camera to base link
+			}
+			catch(const std::exception& e)
+			{
+				RCLCPP_ERROR(ref->get_logger(), "No transform available from camera frame to base frame!");
+				valid_cam2base = false;
+			}
+			try
+			{
+				prev_w2base = ref->tfbuffer.lookupTransform(ref->tags_frame_id, ref->base_frame_id, tf2::TimePoint{});
+			}
+			catch(const std::exception& e)
+			{
+				RCLCPP_INFO(ref->get_logger(), "Could not fetch previous transform from world to base frame - filtering may be degraded.");
+				valid_prev_w2base = false;
+			}
 
 			for(size_t i = 0; i < n_solutions; i++)
 			{
@@ -500,22 +521,51 @@ void ArucoServer::ImageSource::img_callback(const sensor_msgs::msg::Image::Const
 
 				ref->tfbroadcaster.sendTransform(cam2w);
 
-				if(i == 0)
+				if(!valid_cam2base) continue;
+
+				geometry_msgs::msg::TransformStamped w2cam;	// tags origin to camera
+				w2cam.transform.translation = reinterpret_cast<geometry_msgs::msg::Vector3&>(vi);
+				w2cam.transform.rotation = reinterpret_cast<geometry_msgs::msg::Quaternion&>(qi);
+				w2cam.header.stamp = cv_img->header.stamp;
+				w2cam.header.frame_id = ref->tags_frame_id;
+				w2cam.child_frame_id = cv_img->header.frame_id;
+
+				geometry_msgs::msg::TransformStamped w2base;	// full transform -- world to base
+				tf2::doTransform(cam2base, w2base, w2cam);
+
+				// filter based on w2base
+				const Eigen::Vector3d&
+					current_translation = reinterpret_cast<Eigen::Vector3d&>(w2base.transform.translation),
+					prev_translation = reinterpret_cast<const Eigen::Vector3d&>(prev_w2base.transform.translation);
+				const Eigen::Quaterniond&
+					current_rotation = reinterpret_cast<Eigen::Quaterniond&>(w2base.transform.rotation),
+					prev_rotation = reinterpret_cast<const Eigen::Quaterniond&>(prev_w2base.transform.rotation);
+
+				double _ldist = 0., _rdist = 0.;
+				if(ref->filter_prev_proximity && valid_prev_w2base)
 				{
-					geometry_msgs::msg::TransformStamped w2cam;	// tags origin to camera
-					w2cam.transform.translation = reinterpret_cast<geometry_msgs::msg::Vector3&>(vi);
-					w2cam.transform.rotation = reinterpret_cast<geometry_msgs::msg::Quaternion&>(qi);
-					w2cam.header.stamp = cv_img->header.stamp;
-					w2cam.header.frame_id = ref->tags_frame_id;
-					w2cam.child_frame_id = cv_img->header.frame_id;
+					_ldist = (current_translation - prev_translation).norm(),
+					_rdist = current_rotation.angularDistance(prev_rotation);
+				}
+				const bool in_bounds = !ref->filter_bbox || ref->bbox.isEmpty() || ref->bbox.contains(current_translation);
 
-					geometry_msgs::msg::TransformStamped w2base;	// full transform -- world to base
-					tf2::doTransform(cam2base, w2base, w2cam);
+				// const Eigen::Vector3d rpy = current_rotation.toRotationMatrix().eulerAngles(0, 1, 2);
+				RCLCPP_INFO(ref->get_logger(),
+					"Pose candidate [%lu] -- RMS: %f -- In bounds?: %d -- Translational(cm): %f -- Rotational(deg): %f",
+					i,
+					ref->_detect.eerrors[i],
+					(int)in_bounds,
+					_ldist * 100.,
+					_rdist * 180. / M_PI);
 
+				if(i == 0)	// publish best pose
+				{
 					geometry_msgs::msg::PoseWithCovarianceStamped p;
 					p.pose.pose.orientation = w2base.transform.rotation;
 					p.pose.pose.position = reinterpret_cast<geometry_msgs::msg::Point&>(w2base.transform.translation);
 					p.header = w2base.header;
+
+					// compute variance
 
 					ref->pose_pub->publish(p);
 				}
