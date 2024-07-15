@@ -104,7 +104,7 @@ protected:
 private:
 	std::unordered_map<int, TagDescription::ConstPtr> obj_tag_corners;
 	std::vector<ImageSource> sources;
-	std::deque<std::pair<std::chrono::system_clock::time_point, std::array<double, 6>>> covariance_samples;
+	std::deque<std::pair<std::chrono::system_clock::time_point, Eigen::Vector<double, 6>>> covariance_samples;
 
 	image_transport::ImageTransport img_tp;
 	image_transport::Publisher debug_pub;
@@ -584,8 +584,11 @@ void ArucoServer::ImageSource::img_callback(const sensor_msgs::msg::Image::Const
 				}
 				else break;
 			}
+
+			using Vec6d = Eigen::Vector<double, 6>;
+
 			// push new data
-			ref->covariance_samples.push_front( { _now, {} } );
+			ref->covariance_samples.push_front( { _now, Vec6d::Zero() } );
 			*reinterpret_cast<Eigen::Vector3d*>(ref->covariance_samples.front().second.data() + 0) =
 				reinterpret_cast<const Eigen::Vector3d&>(best_tf.transform.translation);
 			*reinterpret_cast<Eigen::Vector3d*>(ref->covariance_samples.front().second.data() + 3) =
@@ -594,11 +597,43 @@ void ArucoServer::ImageSource::img_callback(const sensor_msgs::msg::Image::Const
 			RCLCPP_INFO(ref->get_logger(), "Current covariance samples: %lu", ref->covariance_samples.size());
 
 			// perform calculation using remaining samples
+			const size_t samples = ref->covariance_samples.size();
+			Vec6d variance = Vec6d::Zero();
+
+			if(samples > 1)
+			{
+				Vec6d mean = Vec6d::Zero();
+				for(const auto& s : ref->covariance_samples)
+				{
+					mean += s.second;
+				}
+				mean /= samples;
+				for(const auto& s : ref->covariance_samples)
+				{
+					Vec6d _v = s.second - mean;
+					variance += _v.cwiseProduct(_v);
+				}
+				variance /= (samples - 1);
+			}
+
+			RCLCPP_INFO(ref->get_logger(),
+				"Calulcated variance: [%f, %f, %f, %f, %f, %f]",
+				variance[0],
+				variance[1],
+				variance[2],
+				variance[3],
+				variance[4],
+				variance[5]);
 
 			geometry_msgs::msg::PoseWithCovarianceStamped p;
 			p.pose.pose.orientation = best_tf.transform.rotation;
 			p.pose.pose.position = reinterpret_cast<geometry_msgs::msg::Point&>(best_tf.transform.translation);
 			p.header = best_tf.header;
+
+			for(size_t i = 0; i < 6; i++)
+			{
+				p.pose.covariance[i * 7] = variance[i];
+			}
 
 			ref->pose_pub->publish(p);
 		}
