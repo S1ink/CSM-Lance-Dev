@@ -8,7 +8,7 @@
     dlo/imu: true
     dlo/gravityAlign: true
 
-    dlo/odomNode/odom_frame: "dlo_odom"
+    dlo/odomNode/odom_frame: "odom"
     dlo/odomNode/child_frame: "base_link"
     dlo/odomNode/transform_to_child: true
 

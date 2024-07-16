@@ -567,7 +567,7 @@ void ArucoServer::ImageSource::img_callback(const sensor_msgs::msg::Image::Const
 					_ldist * 100.,
 					_rdist * 180. / M_PI);
 
-				if(score < best_score)
+				if(score < best_score || i == 0)
 				{
 					best_tf = w2base;
 					best_score = score;

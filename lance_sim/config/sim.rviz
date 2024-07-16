@@ -58,11 +58,11 @@ Visualization Manager:
           Value: true
         collection_link:
           Value: true
-        dlo_odom:
-          Value: true
         frame_link:
           Value: true
         fwd_cam_link:
+          Value: true
+        gz_base_link:
           Value: true
         left_cam_link:
           Value: true
@@ -70,9 +70,23 @@ Visualization Manager:
           Value: true
         lidar_link:
           Value: true
+        odom:
+          Value: true
         rght_cam_link:
           Value: true
         right_track_link:
+          Value: true
+        tag_0_s0:
+          Value: true
+        tag_0_s1:
+          Value: true
+        tag_1_s0:
+          Value: true
+        tag_1_s1:
+          Value: true
+        tag_2_s0:
+          Value: true
+        tag_2_s1:
           Value: true
         tag_3_s0:
           Value: true
@@ -88,15 +102,33 @@ Visualization Manager:
       Show Axes: true
       Show Names: true
       Tree:
-        dlo_odom:
+        odom:
           base_link:
             frame_link:
               collection_link:
                 {}
               fwd_cam_link:
-                {}
+                tag_3_s0:
+                  {}
+                tag_3_s1:
+                  {}
               left_cam_link:
-                {}
+                tag_0_s0:
+                  {}
+                tag_0_s1:
+                  {}
+                tag_1_s0:
+                  {}
+                tag_1_s1:
+                  {}
+                tag_2_s0:
+                  {}
+                tag_2_s1:
+                  {}
+                tags_odom_0:
+                  {}
+                tags_odom_1:
+                  {}
               left_track_link:
                 {}
               lidar_link:
@@ -105,6 +137,8 @@ Visualization Manager:
                 {}
               right_track_link:
                 {}
+          gz_base_link:
+            {}
       Update Interval: 0
       Value: true
     - Alpha: 0.5
@@ -210,8 +244,8 @@ Visualization Manager:
     - Alpha: 1
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
-        Max Value: 3.101177930831909
-        Min Value: -0.027320895344018936
+        Max Value: 3.099337339401245
+        Min Value: -0.0334208719432354
         Value: true
       Axis: Z
       Channel Name: intensity
@@ -254,10 +288,10 @@ Visualization Manager:
         Value: /model/lance/camera_1/image
       Value: false
       Visibility:
-        "": true
         Grid: false
         Image: true
         PointCloud2: false
+        PoseWithCovariance: true
         RobotModel: false
         TF: false
         Value: false
@@ -295,7 +329,7 @@ Visualization Manager:
           Color: 204; 51; 204
           Scale: 1
           Value: true
-        Value: true
+        Value: false
       Enabled: true
       Head Length: 0.30000001192092896
       Head Radius: 0.10000000149011612
@@ -314,7 +348,7 @@ Visualization Manager:
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
-    Fixed Frame: dlo_odom
+    Fixed Frame: odom
     Frame Rate: 30
   Name: root
   Tools:
