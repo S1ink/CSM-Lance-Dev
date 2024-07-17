@@ -101,7 +101,7 @@
           <pose>3.44 2.5 0.4 0 0 3.1415926</pose>
           <geometry>
             <mesh>
-              <uri>./meshes/lunar-terrain.dae</uri>
+              <uri>./meshes/lunar-terrain.stl</uri>
               <scale>2 2 2</scale>
             </mesh>
           </geometry>
