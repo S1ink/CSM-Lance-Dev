@@ -42,3 +42,4 @@ To run this project, you will need a ROS2 and Gazebo installation. __Currently, 
 - https://gazebosim.org/api/sim/8/tutorials.html
 - https://github.com/ros-controls/gz_ros2_control
 - https://gazebosim.org/api/sim/8/classgz_1_1sim_1_1systems_1_1TrackController.html
+- https://docs.ros.org/en/noetic/api/robot_localization/html/state_estimation_nodes.html
