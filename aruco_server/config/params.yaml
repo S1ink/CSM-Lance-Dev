@@ -10,7 +10,7 @@
         debug_topic: "/aruco_server/debug/image"
         debug_pub_freq: 30
 
-        tags_frame_id: "odom"
+        tags_frame_id: "map"
         base_frame_id: "base_link"
 
         pose_pub_topic: "/aruco_server/pose"

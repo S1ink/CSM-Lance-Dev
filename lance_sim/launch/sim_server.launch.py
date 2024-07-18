@@ -68,12 +68,20 @@ def generate_launch_description():
 			os.path.join(aruco_pkg, 'launch', 'aruco_server.launch.py')
 		)
 	)
+	# robot_localization
+	robot_localization_cmd = Node(
+		package = 'robot_localization',
+		executable = 'ekf_node',
+		name = 'ekf_filter_node',
+		output = 'screen',
+		parameters = [os.path.join(pkg_path, 'config', 'robot_localization.yaml')]
+	)
 	# velocity publisher
 	teleop_node = Node(
 		name = 'teleop_node',
 		package='teleop_twist_joy',
 		executable='teleop_node',
-		parameters=[os.path.join(pkg_path,'config','xbox_controller.yaml')],
+		parameters=[os.path.join(pkg_path, 'config', 'xbox_controller.yaml')],
 		remappings=[('/cmd_vel', '/joystick_cmd_vel')]
 	)
 
@@ -88,6 +96,7 @@ def generate_launch_description():
 	ld.add_action(spawn_lance_cmd)
 	ld.add_action(slam_impl_cmd)
 	ld.add_action(aruco_server_cmd)
+	ld.add_action(robot_localization_cmd)
 	ld.add_action(teleop_node)
 
 	return ld
