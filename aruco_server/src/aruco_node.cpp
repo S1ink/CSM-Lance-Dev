@@ -632,7 +632,8 @@ void ArucoServer::ImageSource::img_callback(const sensor_msgs::msg::Image::Const
 
 			for(size_t i = 0; i < 6; i++)
 			{
-				p.pose.covariance[i * 7] = variance[i];
+				// p.pose.covariance[i * 7] = variance[i];
+				p.pose.covariance[i * 7] = 0.5;
 			}
 
 			ref->pose_pub->publish(p);

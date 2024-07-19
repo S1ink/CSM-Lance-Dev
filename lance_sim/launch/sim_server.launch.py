@@ -74,7 +74,7 @@ def generate_launch_description():
 		executable = 'ekf_node',
 		name = 'ekf_filter_node',
 		output = 'screen',
-		parameters = [os.path.join(pkg_path, 'config', 'robot_localization.yaml')]
+		parameters = [os.path.join(pkg_path, 'config', 'robot_localization.yaml'), {'use_sim_time': True}]
 	)
 	# velocity publisher
 	teleop_node = Node(
