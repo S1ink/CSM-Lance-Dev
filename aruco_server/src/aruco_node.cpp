@@ -53,7 +53,7 @@ public:
 
 protected:
 	void publish_debug_frame();
-	// void publish_alignment();
+	void publish_alignment();
 
 	struct ImageSource
 	{
@@ -110,6 +110,7 @@ private:
 	image_transport::ImageTransport img_tp;
 	image_transport::Publisher debug_pub;
 	rclcpp::Publisher<geometry_msgs::msg::PoseWithCovarianceStamped>::SharedPtr pose_pub;
+	rclcpp::TimerBase::SharedPtr tf_pub;
 
 	tf2_ros::Buffer tfbuffer;
 	tf2_ros::TransformListener tflistener;
@@ -179,25 +180,7 @@ ArucoServer::ArucoServer():
 	util::declare_param(this, "enable_nav_tf_alignment", this->publish_nav_tf, false);
 	if(this->publish_nav_tf)
 	{
-		// RCLCPP_INFO(this->get_logger(), "wtf");
-		this->create_wall_timer(std::chrono::milliseconds(20), /*std::bind( &ArucoServer::publish_alignment, this )*/
-			[this]()
-			{
-				RCLCPP_INFO(this->get_logger(), "wtf");
-				auto _now = std::chrono::system_clock::now();
-				if(_now - this->last_nav_publish > this->target_pub_duration)
-				{
-					this->last_alignment.header.frame_id = this->tags_frame_id;
-					this->last_alignment.header.stamp = this->get_clock()->now();
-					this->last_alignment.child_frame_id = this->odom_frame_id;
-
-					this->tfbroadcaster.sendTransform(this->last_alignment);
-					this->last_nav_publish = _now;
-
-					RCLCPP_INFO(this->get_logger(), "Manually republished tags->odom TF.");
-				}
-			}
-		);
+		this->tf_pub = this->create_wall_timer(std::chrono::milliseconds(20), std::bind( &ArucoServer::publish_alignment, this ));
 	}
 
 	std::string pose_topic;
@@ -328,21 +311,21 @@ void ArucoServer::publish_debug_frame()
 	}
 }
 
-// void ArucoServer::publish_alignment()
-// {
-// 	auto _now = std::chrono::system_clock::now();
-// 	if(_now - this->last_nav_publish > this->target_pub_duration)
-// 	{
-// 		this->last_alignment.header.frame_id = this->tags_frame_id;
-// 		this->last_alignment.header.stamp = this->get_clock()->now();
-// 		this->last_alignment.child_frame_id = this->odom_frame_id;
+void ArucoServer::publish_alignment()
+{
+	auto _now = std::chrono::system_clock::now();
+	if(_now - this->last_nav_publish > this->target_pub_duration)
+	{
+		this->last_alignment.header.frame_id = this->tags_frame_id;
+		this->last_alignment.header.stamp = this->get_clock()->now();
+		this->last_alignment.child_frame_id = this->odom_frame_id;
 
-// 		this->tfbroadcaster.sendTransform(this->last_alignment);
-// 		this->last_nav_publish = _now;
+		this->tfbroadcaster.sendTransform(this->last_alignment);
+		this->last_nav_publish = _now;
 
-// 		RCLCPP_INFO(this->get_logger(), "Manually republished tags->odom TF.");
-// 	}
-// }
+		RCLCPP_INFO(this->get_logger(), "Manually republished tags->odom TF.");
+	}
+}
 
 void ArucoServer::ImageSource::img_callback(const sensor_msgs::msg::Image::ConstSharedPtr& img)
 {
