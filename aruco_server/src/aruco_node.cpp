@@ -53,6 +53,7 @@ public:
 
 protected:
 	void publish_debug_frame();
+	// void publish_alignment();
 
 	struct ImageSource
 	{
@@ -114,11 +115,13 @@ private:
 	tf2_ros::TransformListener tflistener;
 	tf2_ros::TransformBroadcaster tfbroadcaster;
 
-	std::string tags_frame_id, base_frame_id;
-	bool filter_prev_proximity, filter_bbox;
+	geometry_msgs::msg::TransformStamped last_alignment;
+
+	std::string tags_frame_id, odom_frame_id, base_frame_id;
+	bool publish_nav_tf, filter_prev_proximity, filter_bbox;
 	Eigen::AlignedBox3d bbox;
 
-	std::chrono::system_clock::time_point last_publish;
+	std::chrono::system_clock::time_point last_img_publish, last_nav_publish;
 	std::chrono::duration<double> target_pub_duration, target_covariance_sample_history;
 
 	cv::Ptr<cv::aruco::Dictionary> aruco_dict;
@@ -145,7 +148,7 @@ ArucoServer::ArucoServer():
 	tfbuffer{ std::make_shared<rclcpp::Clock>(RCL_ROS_TIME) },
 	tflistener{ tfbuffer },
 	tfbroadcaster{ *this },
-	last_publish{ std::chrono::system_clock::now() }
+	last_img_publish{ std::chrono::system_clock::now() }
 {
 	std::vector<std::string> img_topics, info_topics;
 	util::declare_param<std::vector<std::string>>(this, "img_topics", img_topics, {});
@@ -170,7 +173,32 @@ ArucoServer::ArucoServer():
 	}
 
 	util::declare_param(this, "tags_frame_id", this->tags_frame_id, "world");
+	util::declare_param(this, "odom_frame_id", this->odom_frame_id, "odom");
 	util::declare_param(this, "base_frame_id", this->base_frame_id, "base_link");
+
+	util::declare_param(this, "enable_nav_tf_alignment", this->publish_nav_tf, false);
+	if(this->publish_nav_tf)
+	{
+		// RCLCPP_INFO(this->get_logger(), "wtf");
+		this->create_wall_timer(std::chrono::milliseconds(20), /*std::bind( &ArucoServer::publish_alignment, this )*/
+			[this]()
+			{
+				RCLCPP_INFO(this->get_logger(), "wtf");
+				auto _now = std::chrono::system_clock::now();
+				if(_now - this->last_nav_publish > this->target_pub_duration)
+				{
+					this->last_alignment.header.frame_id = this->tags_frame_id;
+					this->last_alignment.header.stamp = this->get_clock()->now();
+					this->last_alignment.child_frame_id = this->odom_frame_id;
+
+					this->tfbroadcaster.sendTransform(this->last_alignment);
+					this->last_nav_publish = _now;
+
+					RCLCPP_INFO(this->get_logger(), "Manually republished tags->odom TF.");
+				}
+			}
+		);
+	}
 
 	std::string pose_topic;
 	util::declare_param(this, "pose_pub_topic", pose_topic, "/aruco_server/pose");
@@ -299,6 +327,22 @@ void ArucoServer::publish_debug_frame()
 		}
 	}
 }
+
+// void ArucoServer::publish_alignment()
+// {
+// 	auto _now = std::chrono::system_clock::now();
+// 	if(_now - this->last_nav_publish > this->target_pub_duration)
+// 	{
+// 		this->last_alignment.header.frame_id = this->tags_frame_id;
+// 		this->last_alignment.header.stamp = this->get_clock()->now();
+// 		this->last_alignment.child_frame_id = this->odom_frame_id;
+
+// 		this->tfbroadcaster.sendTransform(this->last_alignment);
+// 		this->last_nav_publish = _now;
+
+// 		RCLCPP_INFO(this->get_logger(), "Manually republished tags->odom TF.");
+// 	}
+// }
 
 void ArucoServer::ImageSource::img_callback(const sensor_msgs::msg::Image::ConstSharedPtr& img)
 {
@@ -484,6 +528,7 @@ void ArucoServer::ImageSource::img_callback(const sensor_msgs::msg::Image::Const
 			bool valid_cam2base = true, valid_prev_w2base = true;
 			try
 			{
+				// TODO: more robust search if tp is not valid
 				cam2base = ref->tfbuffer.lookupTransform(cv_img->header.frame_id, ref->base_frame_id, time_point);		// camera to base link
 			}
 			catch(const std::exception& e)
@@ -493,6 +538,7 @@ void ArucoServer::ImageSource::img_callback(const sensor_msgs::msg::Image::Const
 			}
 			try
 			{
+				// TODO: this might not be what we want (tp really old?)...
 				prev_w2base = ref->tfbuffer.lookupTransform(ref->tags_frame_id, ref->base_frame_id, tf2::TimePoint{});
 			}
 			catch(const std::exception& e)
@@ -574,6 +620,36 @@ void ArucoServer::ImageSource::img_callback(const sensor_msgs::msg::Image::Const
 				}
 			}
 
+			// publish alignment tf
+			if(ref->publish_nav_tf)
+			{
+				// alignment = full tf + inverse of odom tf ("full - odom")
+				geometry_msgs::msg::TransformStamped base2odom;
+				bool valid_base2odom = true;
+				try
+				{
+					if(ref->tfbuffer.canTransform(ref->base_frame_id, ref->odom_frame_id, time_point))
+						base2odom = ref->tfbuffer.lookupTransform(ref->base_frame_id, ref->odom_frame_id, time_point);
+					else if(ref->tfbuffer.canTransform(ref->base_frame_id, ref->odom_frame_id, tf2::TimePoint{}))
+						base2odom = ref->tfbuffer.lookupTransform(ref->base_frame_id, ref->odom_frame_id, tf2::TimePoint{});
+					else valid_base2odom = false;
+				}
+				catch(const std::exception& e)
+				{
+					RCLCPP_INFO(ref->get_logger(), "Failed to fetch transform from base to odom frames: %s", e.what());
+					valid_base2odom = false;
+				}
+
+				if(valid_base2odom)
+				{
+					tf2::doTransform(base2odom, ref->last_alignment, best_tf);
+					ref->last_alignment.child_frame_id = ref->odom_frame_id;
+
+					ref->tfbroadcaster.sendTransform(ref->last_alignment);
+					ref->last_nav_publish = std::chrono::system_clock::now();
+				}
+			}
+
 			// compute variance
 			auto _now = std::chrono::system_clock::now();
 			while(!ref->covariance_samples.empty())	// remove old samples from back
@@ -632,8 +708,8 @@ void ArucoServer::ImageSource::img_callback(const sensor_msgs::msg::Image::Const
 
 			for(size_t i = 0; i < 6; i++)
 			{
-				// p.pose.covariance[i * 7] = variance[i];
-				p.pose.covariance[i * 7] = 0.5;
+				p.pose.covariance[i * 7] = variance[i];
+				// p.pose.covariance[i * 7] = 0.5;
 			}
 
 			ref->pose_pub->publish(p);
@@ -645,9 +721,9 @@ void ArucoServer::ImageSource::img_callback(const sensor_msgs::msg::Image::Const
 	}
 
 	auto t = std::chrono::system_clock::now();
-	if(t - ref->last_publish > ref->target_pub_duration)
+	if(t - ref->last_img_publish > ref->target_pub_duration)
 	{
-		ref->last_publish = t;
+		ref->last_img_publish = t;
 		ref->publish_debug_frame();
 	}
 }

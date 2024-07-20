@@ -20,6 +20,7 @@ def generate_launch_description():
 
 	artemis_arena_world = os.path.join( worlds_path, 'artemis-arena.world' )
 	maze_world = os.path.join( worlds_path, 'maze.world' )
+	moon_world = os.path.join( worlds_path, 'moon.world' )
 	
 	# config arg for choosing which map to use
 
@@ -96,7 +97,7 @@ def generate_launch_description():
 	ld.add_action(spawn_lance_cmd)
 	ld.add_action(slam_impl_cmd)
 	ld.add_action(aruco_server_cmd)
-	ld.add_action(robot_localization_cmd)
+	# ld.add_action(robot_localization_cmd)
 	ld.add_action(teleop_node)
 
 	return ld

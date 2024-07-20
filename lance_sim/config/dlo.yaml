@@ -26,7 +26,7 @@
     dlo/odomNode/initialPose/orientation/y: 0.0
     dlo/odomNode/initialPose/orientation/z: 0.0
 
-    dlo/odomNode/variance/use: true
+    dlo/odomNode/variance/use: false
     dlo/odomNode/variance/sample_history: 0.5
 
     dlo/odomNode/filteredScan/use: true

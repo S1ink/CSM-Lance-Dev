@@ -11,7 +11,10 @@
         debug_pub_freq: 30
 
         tags_frame_id: "map"
+        odom_frame_id: "odom"
         base_frame_id: "base_link"
+
+        enable_nav_tf_alignment: true   # publish an 'alignment' tf from tags frame to odom frame
 
         pose_pub_topic: "/aruco_server/pose"
 
