@@ -23,6 +23,7 @@
   <!-- <depend>lidarslam</depend> -->
   <depend>direct_lidar_odometry</depend>
   <depend>robot_localization</depend>
+  <depend>foxglove_bridge</depend>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 

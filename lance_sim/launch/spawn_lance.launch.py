@@ -2,8 +2,6 @@ import os
 
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument
-from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
 
 
@@ -52,11 +50,9 @@ def generate_launch_description():
 		output='screen',
 	)
 
-	ld = LaunchDescription()
 
-	# Add any conditioned actions
-	ld.add_action(start_gazebo_ros_spawner_cmd)
-	ld.add_action(start_gazebo_ros_bridge_cmd)
-	ld.add_action(start_gazebo_ros_image_bridge_cmd)
-
-	return ld
+	return LaunchDescription([
+		start_gazebo_ros_spawner_cmd,
+		start_gazebo_ros_bridge_cmd,
+		start_gazebo_ros_image_bridge_cmd
+	])

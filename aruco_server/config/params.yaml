@@ -1,68 +1,68 @@
 /**:
-    ros__parameters:
-        img_topics: [ "/model/lance/left_cam/image",
-                        "/model/lance/fwd_cam/image",
-                        "/model/lance/rght_cam/image" ]
-        info_topics: [ "/model/lance/left_cam/camera_info",
-                        "/model/lance/fwd_cam/camera_info",
-                        "/model/lance/rght_cam/camera_info" ]
+  ros__parameters:
+    img_topics: [ "/model/lance/left_cam/image",
+                  "/model/lance/fwd_cam/image",
+                  "/model/lance/rght_cam/image" ]
+    info_topics: [ "/model/lance/left_cam/camera_info",
+                   "/model/lance/fwd_cam/camera_info",
+                   "/model/lance/rght_cam/camera_info" ]
 
-        debug_topic: "/aruco_server/debug/image"
-        debug_pub_freq: 30
+    debug_topic: "/aruco_server/debug/image"
+    debug_pub_freq: 30
 
-        pose_pub_topic: "/aruco_server/pose"
+    pose_pub_topic: "/aruco_server/pose"
 
-        tags_frame_id: "map"
-        odom_frame_id: "odom"
-        base_frame_id: "base_link"
+    tags_frame_id: "map"
+    odom_frame_id: "odom"
+    base_frame_id: "base_link"
 
-        enable_nav_tf_alignment: true   # publish an 'alignment' tf from tags frame to odom frame
+    enable_nav_tf_alignment: true   # publish an 'alignment' tf from tags frame to odom frame
 
-        filtering:
-            bounds_min: [ 0.2, 0.2, -0.3 ]
-            bounds_max: [ 6.68, 5., 0.3 ]
+    filtering:
+      bounds_min: [ 0.2, 0.2, -0.3 ]
+      bounds_max: [ 6.68, 5., 0.3 ]
 
-            fitness:            # params for ranking each estimate -- lowest score = best
-                linear_diff_velocity_weight: 0.1
-                angular_diff_velocity_weight: 0.1
-                oob_weight: 100.0
-                rms_weight: 10.0
+      fitness:            # params for ranking each estimate -- lowest score = best
+        linear_diff_velocity_weight: 0.1
+        angular_diff_velocity_weight: 0.1
+        oob_weight: 100.0
+        rms_weight: 10.0
 
-            tf_pub_threshold:   # requirements for publishing a new 'localization alignment' tf
-                max_linear_diff_velocity: 0.5
-                max_angular_diff_velocity: 1.0
-                min_tags_per_range: 0.6
-                max_rms_per_tag: 0.25
+      tf_pub_threshold:   # requirements for publishing a new 'localization alignment' tf
+        max_linear_diff_velocity: 0.5
+        max_angular_diff_velocity: 1.0
+        min_tags_per_range: 0.6
+        max_rms_per_tag: 0.25
 
-        covariance:
-            use_live_sampler: false
-            sampling_history: 0.5
-            # these params will be used if live sampling is disabled
-            linear_base_coeff: 0.001    # base 'y-intercept' linear (x, y, z) covariance
-            linear_range_coeff: 0.02    # how much linear covariance to add per distance from tags
-            angular_base_coeff: 0.001   # base 'y-intercept' angular covariance
-            angular_range_coeff: 0.02   # how much angular covariance to add per distance from tags
+    covariance:
+      use_live_sampler: false
+      sampling_history: 0.5
+      # these params will be used if live sampling is disabled
+      linear_base_coeff: 0.001    # base 'y-intercept' linear (x, y, z) covariance
+      linear_range_coeff: 0.02    # how much linear covariance to add per distance from tags
+      angular_base_coeff: 0.001   # base 'y-intercept' angular covariance
+      angular_range_coeff: 0.02   # how much angular covariance to add per distance from tags
 
 
-        aruco_predefined_family_idx: 20     # AprilTag 36h11
-        tag_ids: [ 0., 1., 2., 3. ]
+    aruco_predefined_family_idx: 20     # AprilTag 36h11
+    tag_ids: [ 0., 1., 2., 3. ]
 
-        tag0: [ 0.216, 1.055, 0.06,
-                0.216, 0.575, 0.06,
-                0.216, 0.575, 0.54,
-                0.216, 1.055, 0.54 ]
+    tag0: [ 0.216, 1.055, 0.06,
+            0.216, 0.575, 0.06,
+            0.216, 0.575, 0.54,
+            0.216, 1.055, 0.54 ]
 
-        tag1: [ 0.256, 0.485, 0.05,
-                0.576, 0.245, 0.05,
-                0.576, 0.245, 0.45,
-                0.256, 0.485, 0.45 ]
+    tag1: [ 0.256, 0.485, 0.05,
+            0.576, 0.245, 0.05,
+            0.576, 0.245, 0.45,
+            0.256, 0.485, 0.45 ]
 
-        tag2: [ 0.646, 0.215, 0.03,
-                0.886, 0.215, 0.03,
-                0.886, 0.215, 0.27,
-                0.646, 0.215, 0.27 ]
+    tag2: [ 0.646, 0.215, 0.03,
+            0.886, 0.215, 0.03,
+            0.886, 0.215, 0.27,
+            0.646, 0.215, 0.27 ]
 
-        tag3: [ 0.636, 0.215, 0.32,
-                0.796, 0.215, 0.32,
-                0.796, 0.215, 0.48,
-                0.636, 0.215, 0.48 ]
+    tag3: [ 0.636, 0.215, 0.32,
+            0.796, 0.215, 0.32,
+            0.796, 0.215, 0.48,
+            0.636, 0.215, 0.48 ]
