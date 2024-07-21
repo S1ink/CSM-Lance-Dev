@@ -67,7 +67,8 @@ def generate_launch_description():
 	aruco_server_cmd = IncludeLaunchDescription(
 		PythonLaunchDescriptionSource(
 			os.path.join(aruco_pkg, 'launch', 'aruco_server.launch.py')
-		)
+		),
+		launch_arguments = {'use_sim_time': 'true'}.items()
 	)
 	# robot_localization
 	robot_localization_cmd = Node(

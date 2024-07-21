@@ -10,21 +10,39 @@
         debug_topic: "/aruco_server/debug/image"
         debug_pub_freq: 30
 
+        pose_pub_topic: "/aruco_server/pose"
+
         tags_frame_id: "map"
         odom_frame_id: "odom"
         base_frame_id: "base_link"
 
         enable_nav_tf_alignment: true   # publish an 'alignment' tf from tags frame to odom frame
 
-        pose_pub_topic: "/aruco_server/pose"
-
         filtering:
-            prev_transform: true
-            bounding_box: true
             bounds_min: [ 0.2, 0.2, -0.3 ]
             bounds_max: [ 6.68, 5., 0.3 ]
 
-        covariance_sampling_history: 0.5
+            fitness:            # params for ranking each estimate -- lowest score = best
+                linear_diff_velocity_weight: 0.1
+                angular_diff_velocity_weight: 0.1
+                oob_weight: 100.0
+                rms_weight: 10.0
+
+            tf_pub_threshold:   # requirements for publishing a new 'localization alignment' tf
+                max_linear_diff_velocity: 0.5
+                max_angular_diff_velocity: 1.0
+                min_tags_per_range: 0.6
+                max_rms_per_tag: 0.25
+
+        covariance:
+            use_live_sampler: false
+            sampling_history: 0.5
+            # these params will be used if live sampling is disabled
+            linear_base_coeff: 0.001    # base 'y-intercept' linear (x, y, z) covariance
+            linear_range_coeff: 0.02    # how much linear covariance to add per distance from tags
+            angular_base_coeff: 0.001   # base 'y-intercept' angular covariance
+            angular_range_coeff: 0.02   # how much angular covariance to add per distance from tags
+
 
         aruco_predefined_family_idx: 20     # AprilTag 36h11
         tag_ids: [ 0., 1., 2., 3. ]
