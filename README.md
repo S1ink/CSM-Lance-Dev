@@ -1,5 +1,5 @@
 # Gazebo-Test-Sim
-A test project for simulating a ROS2 robot control system utilizing gazebo.
+A ROS2-compatible simulation for perception and autonomy development.
 
 ## Setup/Usage
 To run this project, you will need a ROS2 and Gazebo installation. __Currently, the easiest and best pairing includes ROS2 Jazzy and Gazebo Harmonic (both LTS versions), but requires an Ubuntu 24.04 install (or equivalent).__ It is also possible to pair ROS2 Humble with Gazebo Harmonic on Ubuntu 22.04 if necessary, although this pairing is not officially supported and may require manual compilation of other simulation packages. Some additional considerations include:
@@ -23,7 +23,7 @@ To run this project, you will need a ROS2 and Gazebo installation. __Currently, 
 	```
 5. Make sure all required packages are installed using rosdep:
 	```bash
-	rosdep install --from-paths .
+	rosdep install --ignore-src --from-paths .
 	```
 6. Build and source (execute when in workspace directory):
 	```bash
@@ -35,11 +35,35 @@ To run this project, you will need a ROS2 and Gazebo installation. __Currently, 
 	ros2 launch lance_sim sim.launch.py
 	```
 
-## Resources
-- ~~https://articulatedrobotics.xyz/category/build-a-mobile-robot-with-ros~~
+#### Launching & Arguments
+
+The project can be launched as a separate 'client' and 'server' (ex. on separate machines):
+- __Server__ (gazebo, robot_state_publisher, ros_gz_bridge, lio/aruco, teleop, foxglove_bridge):
+	```bash
+	ros2 launch lance_sim sim_server.launch.py <use_gz_gui:={true/false}> <gz_map:={arena/maze/moon}>
+	```
+	"use_gz_gui" controls whether or not the gazebo client is launched, and "gz_map" controls which world file is loaded (although currently broken).
+
+- __Client__ (joystick publisher, rviz):
+	```bash
+	ros2 launch lance_sim sim_remote.launch.py <rviz:={true/false}>
+	```
+	"rviz" controls wheather or not rviz is launched.
+
+- __Combined__ (calls both client and server launchfiles):
+	```bash
+	ros2 launch lance_sim sim.launch.py <...>
+	```
+	All arguments for individual client/server launches are wrapped and can be used here as well.
+
+
+## Resources (in no particular order)
 - https://gazebosim.org/docs/harmonic/getstarted
 - https://github.com/azeey/turtlebot3_simulations/tree/new_gazebo/turtlebot3_gazebo
 - https://gazebosim.org/api/sim/8/tutorials.html
 - https://github.com/ros-controls/gz_ros2_control
 - https://gazebosim.org/api/sim/8/classgz_1_1sim_1_1systems_1_1TrackController.html
 - https://docs.ros.org/en/noetic/api/robot_localization/html/state_estimation_nodes.html
+- https://docs.foxglove.dev/docs/introduction
+
+__*Last updated: 7/21/24*__

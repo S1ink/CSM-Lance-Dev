@@ -9,6 +9,7 @@
 #include <deque>
 #include <functional>
 #include <unordered_map>
+#include <type_traits>
 
 #include <Eigen/Core>
 #include <Eigen/Geometry>
@@ -21,6 +22,9 @@
 #include <sensor_msgs/msg/image.hpp>
 #include <sensor_msgs/msg/camera_info.hpp>
 #include <geometry_msgs/msg/pose_with_covariance_stamped.hpp>
+#include <std_msgs/msg/bool.hpp>
+#include <std_msgs/msg/int64.hpp>
+#include <std_msgs/msg/float64.hpp>
 
 #include <cv_bridge/cv_bridge.hpp>
 #include <image_transport/image_transport.hpp>
@@ -34,13 +38,58 @@
 
 namespace util {
 
-	template <typename T>
+	template<typename T>
 	struct identity { typedef T type; };
 
-	template <typename T>
+	template<typename T>
 	void declare_param(rclcpp::Node* node, const std::string param_name, T& param, const typename identity<T>::type& default_value) {
 		node->declare_parameter(param_name, default_value);
 		node->get_parameter(param_name, param);
+	}
+
+	template<typename ros_T, typename primitive_T>
+	inline constexpr ros_T& to_ros(primitive_T& v)
+	{
+		static_assert(
+			std::is_same<typename ros_T::_data_type, primitive_T>::value &&
+			sizeof(ros_T) == sizeof(primitive_T) &&
+			alignof(ros_T) == alignof(primitive_T) );
+
+		return reinterpret_cast<ros_T&>(v);
+	}
+
+	inline constexpr std_msgs::msg::Bool& to_ros(bool& v)
+	{
+		return reinterpret_cast<std_msgs::msg::Bool&>(v);
+	}
+	inline constexpr std_msgs::msg::Int64& to_ros(int64_t& v)
+	{
+		return reinterpret_cast<std_msgs::msg::Int64&>(v);
+	}
+	inline constexpr std_msgs::msg::Float64& to_ros(double& v)
+	{
+		return reinterpret_cast<std_msgs::msg::Float64&>(v);
+	}
+
+	template<typename ros_T, typename primitive_T>
+	inline ros_T to_ros_val(primitive_T v)
+	{
+		static_assert(std::is_same<typename ros_T::_data_type, primitive_T>::value);
+
+		return ros_T{}.set__data(v);
+	}
+
+	inline std_msgs::msg::Bool to_ros_val(bool v)
+	{
+		return std_msgs::msg::Bool{}.set__data(v);
+	}
+	inline std_msgs::msg::Int64 to_ros_val(int64_t v)
+	{
+		return std_msgs::msg::Int64{}.set__data(v);
+	}
+	inline std_msgs::msg::Float64 to_ros_val(double v)
+	{
+		return std_msgs::msg::Float64{}.set__data(v);
 	}
 
 }
@@ -166,6 +215,28 @@ private:
 			enable_live_covariance;
 	}
 	_param;
+
+	struct
+	{
+		rclcpp::Publisher<std_msgs::msg::Bool>::SharedPtr
+			// best_in_bounds,
+			did_nav_alignment;
+		rclcpp::Publisher<std_msgs::msg::Int64>::SharedPtr
+			tag_matches;
+		rclcpp::Publisher<std_msgs::msg::Float64>::SharedPtr
+			// best_score,
+			highest_rms,
+			sum_area,
+			linear_variance,
+			angular_variance,
+			best_rms,
+			tags_per_range,
+			rms_per_tag,
+			range,
+			alignment_time_diff;
+	}
+	_pub;
+	
 
 };
 
@@ -321,6 +392,22 @@ ArucoServer::ArucoServer():
 			this->create_subscription<sensor_msgs::msg::CameraInfo>( info_topics[i], 10,
 				std::bind( &ArucoServer::ImageSource::info_callback, &this->sources[i], std::placeholders::_1 ) );
 	}
+
+	{
+		// this->_pub.best_in_bounds = this->create_publisher<std_msgs::msg::Bool>("/aruco_server/debug/best_is_in_bounds", 1);
+		this->_pub.did_nav_alignment = this->create_publisher<std_msgs::msg::Bool>("/aruco_server/debug/did_nav_alignment", 1);
+		this->_pub.tag_matches = this->create_publisher<std_msgs::msg::Int64>("/aruco_server/debug/tag_matches", 1);
+		// this->_pub.best_score = this->create_publisher<std_msgs::msg::Float64>("/aruco_server/debug/best/score", 1);
+		this->_pub.highest_rms = this->create_publisher<std_msgs::msg::Float64>("/aruco_server/debug/highest_rms", 1);
+		this->_pub.sum_area = this->create_publisher<std_msgs::msg::Float64>("/aruco_server/debug/sum_area", 1);
+		this->_pub.linear_variance = this->create_publisher<std_msgs::msg::Float64>("/aruco_server/debug/linear_variance", 1);
+		this->_pub.angular_variance = this->create_publisher<std_msgs::msg::Float64>("/aruco_server/debug/angular_variance", 1);
+		this->_pub.best_rms = this->create_publisher<std_msgs::msg::Float64>("/aruco_server/debug/best_rms", 1);
+		this->_pub.tags_per_range = this->create_publisher<std_msgs::msg::Float64>("/aruco_server/debug/tags_per_range", 1);
+		this->_pub.rms_per_tag = this->create_publisher<std_msgs::msg::Float64>("/aruco_server/debug/rms_per_tag", 1);
+		this->_pub.range = this->create_publisher<std_msgs::msg::Float64>("/aruco_server/debug/range", 1);
+		this->_pub.alignment_time_diff = this->create_publisher<std_msgs::msg::Float64>("/aruco_server/debug/alignment_diff_time", 1);
+	}
 }
 
 void ArucoServer::publish_debug_frame()
@@ -365,7 +452,7 @@ void ArucoServer::publish_alignment()
 		this->tfbroadcaster.sendTransform(this->last_alignment);
 		this->last_nav_publish = _now;
 
-		RCLCPP_INFO(this->get_logger(), "Manually republished tags->odom TF.");
+		// RCLCPP_INFO(this->get_logger(), "Manually republished tags->odom TF.");
 	}
 }
 
@@ -425,6 +512,9 @@ void ArucoServer::ImageSource::img_callback(const sensor_msgs::msg::Image::Const
 		cv::Vec4d _plane = cv::Vec4d::zeros();
 		TagDescription::ConstPtr primary_desc;
 		std::vector<double> ranges;
+		double
+			sum_area = 0.,
+			highest_individual_rms = 0.;
 
 		ranges.reserve(n_detected * 2);
 		for(size_t i = 0; i < n_detected; i++)
@@ -441,6 +531,8 @@ void ArucoServer::ImageSource::img_callback(const sensor_msgs::msg::Image::Const
 				ref->_detect.img_points.insert(ref->_detect.img_points.end(), img_corners.begin(), img_corners.end());
 
 				if(++matches == 1) primary_desc = result;	// first match
+
+				sum_area += cv::contourArea(img_corners);
 
 				// for(size_t x = 0; x < obj_corners.size(); x++)
 				// {
@@ -461,6 +553,8 @@ void ArucoServer::ImageSource::img_callback(const sensor_msgs::msg::Image::Const
 					ref->_detect.eerrors);
 
 				// cv::drawFrameAxes(this->last_frame, this->calibration, this->distortion, _rvec, _tvec, 0.2f, 3);
+
+				if(ref->_detect.eerrors[0] > highest_individual_rms) highest_individual_rms = ref->_detect.eerrors[0];
 
 				for(size_t s = 0; s < ref->_detect.rvecs.size(); s++)
 				{
@@ -553,11 +647,10 @@ void ArucoServer::ImageSource::img_callback(const sensor_msgs::msg::Image::Const
 				std::chrono::seconds{cv_img->header.stamp.sec} +
 				std::chrono::nanoseconds{cv_img->header.stamp.nanosec} };
 
-			geometry_msgs::msg::TransformStamped cam2base, prev_w2base;
+			geometry_msgs::msg::TransformStamped cam2base/*, prev_w2base*/;
 			bool valid_cam2base = true, valid_prev_w2base = true;
 			try
 			{
-				// TODO: more robust search if tp is not valid
 				cam2base = ref->tfbuffer.lookupTransform(cv_img->header.frame_id, ref->_param.base_frame_id, time_point);		// camera to base link
 			}
 			catch(const std::exception& e)
@@ -565,23 +658,23 @@ void ArucoServer::ImageSource::img_callback(const sensor_msgs::msg::Image::Const
 				RCLCPP_ERROR(ref->get_logger(), "No transform available from camera frame to base frame!");
 				valid_cam2base = false;
 			}
-			try
-			{
-				// TODO: this might not be what we want (tp really old?)...
-				prev_w2base = ref->tfbuffer.lookupTransform(ref->_param.tags_frame_id, ref->_param.base_frame_id, tf2::TimePoint{});
-			}
-			catch(const std::exception& e)
-			{
-				RCLCPP_INFO(ref->get_logger(), "Could not fetch previous transform from world to base frame - filtering may be degraded.");
-				valid_prev_w2base = false;
-			}
+			// try
+			// {
+			// 	// TODO: this might not be what we want (tp really old?)...
+			// 	prev_w2base = ref->tfbuffer.lookupTransform(ref->_param.tags_frame_id, ref->_param.base_frame_id, tf2::TimePoint{});
+			// }
+			// catch(const std::exception& e)
+			// {
+			// 	RCLCPP_INFO(ref->get_logger(), "Could not fetch previous transform from world to base frame - filtering may be degraded.");
+			// 	valid_prev_w2base = false;
+			// }
 
 			geometry_msgs::msg::TransformStamped best_tf;
 			bool best_is_in_bounds = true;
 			double
 				best_score = std::numeric_limits<double>::infinity(),
-				best_lv = 0.,
-				best_rv = 0.,
+				// best_lv = 0.,
+				// best_rv = 0.,
 				best_rms = 0.;
 
 			// calculate the best solution
@@ -625,43 +718,43 @@ void ArucoServer::ImageSource::img_callback(const sensor_msgs::msg::Image::Const
 
 				// filter based on w2base
 				const Eigen::Vector3d&
-					current_translation = reinterpret_cast<Eigen::Vector3d&>(w2base.transform.translation),
-					prev_translation = reinterpret_cast<const Eigen::Vector3d&>(prev_w2base.transform.translation);
+					current_translation = reinterpret_cast<Eigen::Vector3d&>(w2base.transform.translation)/*,
+					prev_translation = reinterpret_cast<const Eigen::Vector3d&>(prev_w2base.transform.translation)*/;
 				const Eigen::Quaterniond&
-					current_rotation = reinterpret_cast<Eigen::Quaterniond&>(w2base.transform.rotation),
-					prev_rotation = reinterpret_cast<const Eigen::Quaterniond&>(prev_w2base.transform.rotation);
-				const double
-					t_diff = std::abs((w2base.header.stamp.sec + w2base.header.stamp.nanosec * 1e-9) - (prev_w2base.header.stamp.sec + prev_w2base.header.stamp.nanosec * 1e-9));
+					current_rotation = reinterpret_cast<Eigen::Quaterniond&>(w2base.transform.rotation)/*,
+					prev_rotation = reinterpret_cast<const Eigen::Quaterniond&>(prev_w2base.transform.rotation)*/;
+				// const double
+				// 	t_diff = std::abs((w2base.header.stamp.sec + w2base.header.stamp.nanosec * 1e-9) - (prev_w2base.header.stamp.sec + prev_w2base.header.stamp.nanosec * 1e-9));
 
-				double _lv = 0., _rv = 0.;
-				if(valid_prev_w2base)	// this is getting confused with dlo jittering
-				{
-					_lv = (current_translation - prev_translation).norm() / t_diff,
-					_rv = current_rotation.angularDistance(prev_rotation) / t_diff;
-				}
+				// double _lv = 0., _rv = 0.;
+				// if(valid_prev_w2base)	// this is getting confused with dlo jittering
+				// {
+				// 	_lv = (current_translation - prev_translation).norm() / t_diff,
+				// 	_rv = current_rotation.angularDistance(prev_rotation) / t_diff;
+				// }
 				const bool in_bounds = ref->_param.filter_bbox.isEmpty() || ref->_param.filter_bbox.contains(current_translation);
 
 				const double score =
-					_lv * ref->_param.fitness_linear_diff_velocity_weight +
-					_rv * ref->_param.fitness_angular_diff_velocity_weight +
+					// _lv * ref->_param.fitness_linear_diff_velocity_weight +
+					// _rv * ref->_param.fitness_angular_diff_velocity_weight +
 					(in_bounds ? 0. : ref->_param.fitness_oob_weight) + 
 					ref->_detect.eerrors[i] * ref->_param.fitness_rms_weight;
 
-				RCLCPP_INFO(ref->get_logger(),
-					"Pose candidate [%lu] -- RMS: %f -- In bounds?: %d -- Translational(cm/s): %f -- Rotational(deg/s): %f -- SCORE: %f",
-					i,
-					ref->_detect.eerrors[i],
-					(int)in_bounds,
-					_lv * 100.,
-					_rv * 180. / M_PI,
-					score);
+				// RCLCPP_INFO(ref->get_logger(),
+				// 	"Pose candidate [%lu] -- RMS: %f -- In bounds?: %d -- Translational(cm/s): %f -- Rotational(deg/s): %f -- SCORE: %f",
+				// 	i,
+				// 	ref->_detect.eerrors[i],
+				// 	(int)in_bounds,
+				// 	_lv * 100.,
+				// 	_rv * 180. / M_PI,
+				// 	score);
 
 				if(score < best_score || i == 0)
 				{
 					best_tf = w2base;
 					best_score = score;
-					best_lv = _lv;
-					best_rv = _rv;
+					// best_lv = _lv;
+					// best_rv = _rv;
 					best_rms = ref->_detect.eerrors[i];
 					best_is_in_bounds = in_bounds;
 				}
@@ -674,16 +767,18 @@ void ArucoServer::ImageSource::img_callback(const sensor_msgs::msg::Image::Const
 			}
 			avg_range /= ranges.size();
 
+			double
+				tags_per_range = matches / avg_range,
+				rms_per_tag = best_rms / matches;
+
 			// publish alignment tf
+			bool did_pub_tf = false;
+			double base2odom_time = 0.;
 			if(ref->_param.enable_nav_tf)
 			{
-				const double
-					tags_per_range = matches / avg_range,
-					rms_per_tag = best_rms / matches;
-
 				if( best_is_in_bounds &&
-					best_lv <= ref->_param.thresh_max_linear_diff_velocity &&
-					best_rv <= ref->_param.thresh_max_angular_diff_velocity &&
+					// best_lv <= ref->_param.thresh_max_linear_diff_velocity &&
+					// best_rv <= ref->_param.thresh_max_angular_diff_velocity &&
 					tags_per_range >= ref->_param.thresh_min_tags_per_range &&
 					rms_per_tag <= ref->_param.thresh_max_rms_per_tag )
 				{
@@ -711,23 +806,24 @@ void ArucoServer::ImageSource::img_callback(const sensor_msgs::msg::Image::Const
 
 						ref->tfbroadcaster.sendTransform(ref->last_alignment);
 						ref->last_nav_publish = std::chrono::system_clock::now();
+
+						did_pub_tf = true;
+						base2odom_time = base2odom.header.stamp.sec + base2odom.header.stamp.nanosec * 1e-9;
 					}
 				}
 				else
 				{
-					RCLCPP_INFO(ref->get_logger(),
-						"TF Alignment candidate rejected -- Tags/range: %f -- RMS/tag: %f",
-						tags_per_range,
-						rms_per_tag);
+					// RCLCPP_INFO(ref->get_logger(),
+					// 	"TF Alignment candidate rejected -- Tags/range: %f -- RMS/tag: %f",
+					// 	tags_per_range,
+					// 	rms_per_tag);
 				}
 			}
 
-			// covariance
-			using Vec6d = Eigen::Vector<double, 6>;
-			Vec6d variance = Vec6d::Zero();
-			if(ref->_param.enable_live_covariance)
+			Eigen::Vector<double, 6> variance = Eigen::Vector<double, 6>::Zero();
 			{
-				// compute variance
+				using Vec6d = Eigen::Vector<double, 6>;
+
 				auto _now = std::chrono::system_clock::now();
 				while(!ref->covariance_samples.empty())	// remove old samples from back
 				{
@@ -766,7 +862,24 @@ void ArucoServer::ImageSource::img_callback(const sensor_msgs::msg::Image::Const
 					variance /= (samples - 1);
 				}
 			}
-			else
+
+			// debug publishers
+			{
+				ref->_pub.did_nav_alignment->publish(util::to_ros(did_pub_tf));
+				ref->_pub.tag_matches->publish(util::to_ros_val((int64_t)matches));
+				ref->_pub.highest_rms->publish(util::to_ros(highest_individual_rms));
+				ref->_pub.sum_area->publish(util::to_ros(sum_area));
+				ref->_pub.linear_variance->publish(util::to_ros_val(cv::norm(*reinterpret_cast<cv::Vec3d*>(variance.data() + 0))));
+				ref->_pub.angular_variance->publish(util::to_ros_val(cv::norm(*reinterpret_cast<cv::Vec3d*>(variance.data() + 3))));
+				ref->_pub.best_rms->publish(util::to_ros(best_rms));
+				ref->_pub.tags_per_range->publish(util::to_ros(tags_per_range));
+				ref->_pub.rms_per_tag->publish(util::to_ros(rms_per_tag));
+				ref->_pub.range->publish(util::to_ros(avg_range));
+				ref->_pub.alignment_time_diff->publish(util::to_ros_val(std::abs((best_tf.header.stamp.sec + best_tf.header.stamp.nanosec * 1e-9) - base2odom_time)));
+			}
+
+			// covariance
+			if(!ref->_param.enable_live_covariance)
 			{
 				// covariance from range
 				variance[0] = variance[1] = variance[2] = ref->_param.covariance_linear_base_coeff + ref->_param.covariance_linear_range_coeff * avg_range;

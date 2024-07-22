@@ -8,7 +8,6 @@ from launch_ros.actions import Node
 
 
 def generate_launch_description():
-    
     pkg_path = get_package_share_directory('aruco_server')
     param_file = os.path.join(pkg_path, 'config', 'params.yaml')
 

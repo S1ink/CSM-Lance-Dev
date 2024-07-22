@@ -24,6 +24,9 @@
   <depend>direct_lidar_odometry</depend>
   <depend>robot_localization</depend>
   <depend>foxglove_bridge</depend>
+  <depend>robot_state_publisher</depend>
+  <depend>joy</depend>
+  <depend>teleop_twist_joy</depend>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 
