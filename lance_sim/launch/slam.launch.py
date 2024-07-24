@@ -127,8 +127,8 @@ def generate_launch_description():
     # 	parameters = [os.path.join(pkg_path, 'config', 'robot_localization.yaml'), {'use_sim_time': True}]
     # )
 
-    ld = dlo_launch_description(this_pkg, use_sim_time)
+    ld = fast_lio_launch_description(this_pkg, use_sim_time)
     ld.add_action(DeclareLaunchArgument('use_sim_time', default_value='true'))
-    ld.add_action(aruco_server_cmd)
+    # ld.add_action(aruco_server_cmd)
 
     return ld
