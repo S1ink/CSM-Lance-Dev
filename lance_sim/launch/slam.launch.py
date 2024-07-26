@@ -104,6 +104,21 @@ def dlo_launch_description(this_pkg, use_sim_time):
 
     return LaunchDescription([dlo_node])
 
+def glim_launch_description(this_pkg, use_sim_time):
+
+    glim_node = Node(
+        name = 'glim',
+        package = 'glim_ros',
+        executable = 'glim_rosnode',
+        output = 'screen',
+        parameters = [{
+            'config_path' : os.path.join(this_pkg, 'config', 'glim'),
+            'use_sim_time' : use_sim_time
+        }]
+    )
+
+    return LaunchDescription([glim_node])
+
 
 def generate_launch_description():
     this_pkg = get_package_share_directory('lance_sim')
@@ -127,8 +142,8 @@ def generate_launch_description():
     # 	parameters = [os.path.join(pkg_path, 'config', 'robot_localization.yaml'), {'use_sim_time': True}]
     # )
 
-    ld = fast_lio_launch_description(this_pkg, use_sim_time)
+    ld = dlo_launch_description(this_pkg, use_sim_time)
     ld.add_action(DeclareLaunchArgument('use_sim_time', default_value='true'))
-    # ld.add_action(aruco_server_cmd)
+    ld.add_action(aruco_server_cmd)
 
     return ld

@@ -1,0 +1,13 @@
+{
+  /*** Global Configuration ***/
+  "global": {
+    "config_path": "",
+    "config_ros": "ros.json",
+    "config_viewer": "viewer.json",
+    "config_sensors": "sensors.json",
+    "config_preprocess": "preprocess.json",
+    "config_odometry": "odometry/cpu_config.json",
+    "config_sub_mapping": "sub_mapping/cpu_config.json",
+    "config_global_mapping": "global_mapping/pose_graph_config.json"
+  }
+}

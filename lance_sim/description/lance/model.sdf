@@ -281,8 +281,8 @@
 					</range>
 					<noise>
 						<type>gaussian</type>
-						<mean>0.002</mean>
-						<stddev>0.001</stddev>
+						<mean>0.005</mean>
+						<stddev>0.003</stddev>
 					</noise>
 				</ray>
 			</sensor>
