@@ -36,12 +36,12 @@ def dlio_launch_description(this_pkg, use_sim_time):
         remappings = [
             ('pointcloud', '/lance/lidar_points'),
             ('imu', '/lance/imu'),
-            ('odom', 'dlio/odom'),
-            ('pose', 'dlio/pose'),
-            ('path', 'dlio/path'),
-            ('kf_pose', 'dlio/keyframes'),
-            ('kf_cloud', 'dlio/pointcloud/keyframe'),
-            ('deskewed', 'dlio/pointcloud/deskewed')
+            ('odom', '/dlio/odom'),
+            ('pose', '/dlio/pose'),
+            ('path', '/dlio/path'),
+            ('kf_pose', '/dlio/keyframes'),
+            ('kf_cloud', '/dlio/pointcloud/keyframe'),
+            ('deskewed', '/dlio/pointcloud/deskewed')
         ]
     )
 
@@ -141,9 +141,20 @@ def generate_launch_description():
     # 	output = 'screen',
     # 	parameters = [os.path.join(pkg_path, 'config', 'robot_localization.yaml'), {'use_sim_time': True}]
     # )
+    # nav2_costmap_cmd = Node(
+    #     name = 'nav2_mapping',
+    #     package = 'nav2_costmap_2d',
+    #     executable = 'nav2_costmap_2d',
+    #     output = 'screen',
+    #     parameters = [
+    #         os.path.join(this_pkg, 'config', 'nav2_mapping.yaml'),
+    #         {'use_sim_time' : use_sim_time}
+    #     ]
+    # )
 
     ld = dlo_launch_description(this_pkg, use_sim_time)
     ld.add_action(DeclareLaunchArgument('use_sim_time', default_value='true'))
     ld.add_action(aruco_server_cmd)
+    # ld.add_action(nav2_costmap_cmd)
 
     return ld

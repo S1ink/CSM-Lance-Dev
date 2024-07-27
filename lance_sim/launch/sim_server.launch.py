@@ -15,6 +15,7 @@ def generate_launch_description():
 
 	pkg_path = get_package_share_directory('lance_sim')
 	ros_gz_sim = get_package_share_directory('ros_gz_sim')
+	nav2_bringup = get_package_share_directory('nav2_bringup')
 
 	launch_file_dir = os.path.join( pkg_path, 'launch' )
 	worlds_path = os.path.join( pkg_path, 'worlds' )
@@ -66,7 +67,7 @@ def generate_launch_description():
 		PythonLaunchDescriptionSource(
 			os.path.join(launch_file_dir, 'robot_state_publisher.launch.py')
 		),
-		launch_arguments={'use_sim_time': 'true'}.items()
+		launch_arguments = {'use_sim_time': 'true'}.items()
 	)
 	# slam
 	slam_impl_cmd = IncludeLaunchDescription(
@@ -80,6 +81,7 @@ def generate_launch_description():
 		name = 'teleop_node',
 		package = 'teleop_twist_joy',
 		executable = 'teleop_node',
+		output = 'screen',
 		parameters = [os.path.join(pkg_path, 'config', 'xbox_controller.yaml')],
 		remappings = [('/cmd_vel', '/joystick_cmd_vel')]
 	)
@@ -90,6 +92,13 @@ def generate_launch_description():
 		executable = 'foxglove_bridge',
 		output = 'screen',
 		parameters = [os.path.join(pkg_path, 'config', 'foxglove_bridge.yaml'), {'use_sim_time': True}]
+	)
+	# nav2
+	nav2_launch = IncludeLaunchDescription(
+		PythonLaunchDescriptionSource(
+			os.path.join(nav2_bringup, 'launch', 'navigation_launch.py')
+		),
+		launch_arguments = {'params_file' : os.path.join(pkg_path, 'config', 'nav2.yaml')}.items()
 	)
 
 	return LaunchDescription([
@@ -102,5 +111,6 @@ def generate_launch_description():
 		spawn_lance_cmd,
 		slam_impl_cmd,
 		teleop_node,
+		nav2_launch,
 		foxglove_node
 	])
