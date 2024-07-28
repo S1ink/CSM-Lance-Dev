@@ -41,7 +41,7 @@
 
     <model name = "arch_arena">
       <static>true</static>
-      <pose degrees = "true">0 0 -0.32 0 0 90</pose>
+      <pose degrees = "true">0 0 -0.77 0 0 90</pose>
       <link name = "arena_link">
         <visual name = "visual">
           <geometry>
