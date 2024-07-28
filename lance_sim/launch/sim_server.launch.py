@@ -23,11 +23,13 @@ def generate_launch_description():
 	artemis_arena_world = os.path.join( worlds_path, 'artemis-arena.world' )
 	maze_world = os.path.join( worlds_path, 'maze.world' )
 	moon_world = os.path.join( worlds_path, 'moon.world' )
+	arch_arena = os.path.join( worlds_path, 'arch-arena.world' )
 
 	world_dict = {
 		'arena' : artemis_arena_world,
 		'maze' : maze_world,
-		'moon' : moon_world
+		'moon' : moon_world,
+		'arch' : arch_arena
 	}
 	
 	# config arg for choosing which map to use
@@ -43,7 +45,7 @@ def generate_launch_description():
 			os.path.join(ros_gz_sim, 'launch', 'gz_sim.launch.py')
 		),
 		launch_arguments={
-			'gz_args': ['-r -s -v4 ', world_dict.get(LaunchConfiguration('gz_map', default='arena'), artemis_arena_world)],
+			'gz_args': ['-r -s -v4 ', world_dict.get(LaunchConfiguration('gz_map', default='arch'), arch_arena)],
 			'on_exit_shutdown': 'true',
 			'pause': 'true'
 		}.items()
@@ -111,6 +113,6 @@ def generate_launch_description():
 		spawn_lance_cmd,
 		slam_impl_cmd,
 		teleop_node,
-		nav2_launch,
+		# nav2_launch,
 		foxglove_node
 	])

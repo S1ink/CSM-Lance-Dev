@@ -28,7 +28,7 @@ def generate_launch_description():
 			'-file', model_path,
 			'-x', '1.0',
 			'-y', '1.0',
-			'-z', '0.0'
+			'-z', '0.5'
 		],
 		output='screen',
 	)
