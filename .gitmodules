@@ -1,6 +1,3 @@
-[submodule "direct_lidar_odometry"]
-	path = direct_lidar_odometry
-	url = https://github.com/Cardinal-Space-Mining/direct_lidar_odometry
-[submodule "FAST_LIO"]
-	path = FAST_LIO
-	url = https://github.com/S1ink/FAST_LIO
+[submodule "temp_perception"]
+	path = temp_perception
+	url = https://github.com/S1ink/Cardinal-Perception
