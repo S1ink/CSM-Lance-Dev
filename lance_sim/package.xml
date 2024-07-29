@@ -21,8 +21,8 @@
   <!-- <depend>fast_lio</depend> -->
   <!-- <depend>direct_lidar_inertial_odometry</depend> -->
   <!-- <depend>lidarslam</depend> -->
-  <depend>direct_lidar_odometry</depend>
-  <depend>robot_localization</depend>
+  <depend>temp_perception</depend>
+  <!-- <depend>robot_localization</depend> -->
   <depend>foxglove_bridge</depend>
   <depend>robot_state_publisher</depend>
   <depend>joy</depend>

@@ -88,7 +88,7 @@ def dlo_launch_description(this_pkg, use_sim_time):
 
     dlo_node = Node(
         name = 'dlo_odom',
-        package = 'direct_lidar_odometry',
+        package = 'temp_perception',
         executable = 'dlo_odom_node',
         output = 'screen',
         parameters = [os.path.join(this_pkg, 'config', 'dlo.yaml'), {'use_sim_time', use_sim_time}],
