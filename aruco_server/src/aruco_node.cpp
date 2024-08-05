@@ -30,7 +30,7 @@
 #include <image_transport/image_transport.hpp>
 
 #include <opencv2/core/quaternion.hpp>
-#include <opencv2/opencv.hpp>
+// #include <opencv2/opencv.hpp>
 #include <opencv2/calib3d.hpp>
 #include <opencv2/imgproc.hpp>
 #include <opencv2/aruco.hpp>
@@ -134,18 +134,18 @@ protected:
 		
 		union
 		{
-			struct{ double x, y, z; };
-			double translation[3];
-		};
-		union
-		{
-			struct{ double qw, qx, qy, qz; };
-			double rotation[4];
-		};
-		union
-		{
-			struct{ double a, b, c, d; };
-			double plane[4];
+			struct
+			{
+				double x, y, z;
+				double qw, qx, qy, qz, qww;
+				double a, b, c, d;
+			};
+			struct
+			{
+				double translation[3];
+				double rotation[5];
+				double plane[4];
+			};
 		};
 
 		static Ptr fromRaw(const std::vector<double>& world_corner_pts);
@@ -171,17 +171,6 @@ private:
 
 	cv::Ptr<cv::aruco::Dictionary> aruco_dict;
 	cv::Ptr<cv::aruco::DetectorParameters> aruco_params;
-
-	struct
-	{
-		std::vector<std::vector<cv::Point2f>> tag_corners;
-		std::vector<int32_t> tag_ids;
-		std::vector<cv::Point2f> img_points;
-		std::vector<cv::Point3f> obj_points;
-		std::vector<cv::Vec3d> tvecs, rvecs;
-		std::vector<double> eerrors;
-	}
-	_detect;
 
 	struct
 	{
@@ -463,8 +452,19 @@ void ArucoServer::ImageSource::img_callback(const sensor_msgs::msg::Image::Const
 	cv_bridge::CvImageConstPtr cv_img = cv_bridge::toCvCopy(*img, "mono8");
 	cv::cvtColor(cv_img->image, this->last_frame, CV_GRAY2BGR);
 
-	ref->_detect.tag_corners.clear();
-	ref->_detect.tag_ids.clear();
+	struct DetectionBuff
+	{
+		std::vector<std::vector<cv::Point2f>> tag_corners;
+		std::vector<int32_t> tag_ids;
+		std::vector<cv::Point2f> img_points;
+		std::vector<cv::Point3f> obj_points;
+		std::vector<cv::Vec3d> tvecs, rvecs;
+		std::vector<double> eerrors;
+	};
+	thread_local DetectionBuff _detect;
+
+	_detect.tag_corners.clear();
+	_detect.tag_ids.clear();
 
 	// cv::Mat undistorted;
 	// try {
@@ -485,8 +485,8 @@ void ArucoServer::ImageSource::img_callback(const sensor_msgs::msg::Image::Const
 		cv::aruco::detectMarkers(
 			cv_img->image,
 			ref->aruco_dict,
-			ref->_detect.tag_corners,
-			ref->_detect.tag_ids,
+			_detect.tag_corners,
+			_detect.tag_ids,
 			ref->aruco_params);
 	}
 	catch(const std::exception& e)
@@ -494,18 +494,19 @@ void ArucoServer::ImageSource::img_callback(const sensor_msgs::msg::Image::Const
 		RCLCPP_ERROR(ref->get_logger(), "Error detecting markers: %s", e.what());
 	}
 
-	cv::aruco::drawDetectedMarkers(this->last_frame, ref->_detect.tag_corners, ref->_detect.tag_ids, cv::Scalar{0, 255, 0});
+	cv::aruco::drawDetectedMarkers(this->last_frame, _detect.tag_corners, _detect.tag_ids, cv::Scalar{0, 255, 0});
 
-	if(const size_t n_detected = ref->_detect.tag_ids.size(); (n_detected > 0 && n_detected == ref->_detect.tag_corners.size()))	// valid detection(s)
+	const size_t n_detected = _detect.tag_ids.size();
+	if(n_detected > 0 && n_detected == _detect.tag_corners.size())	// valid detection(s)
 	{
-		ref->_detect.rvecs.clear();
-		ref->_detect.tvecs.clear();
-		ref->_detect.eerrors.clear();
+		_detect.rvecs.clear();
+		_detect.tvecs.clear();
+		_detect.eerrors.clear();
 
-		ref->_detect.obj_points.clear();
-		ref->_detect.obj_points.reserve(n_detected * 4);
-		ref->_detect.img_points.clear();
-		ref->_detect.img_points.reserve(n_detected * 4);
+		_detect.obj_points.clear();
+		_detect.obj_points.reserve(n_detected * 4);
+		_detect.img_points.clear();
+		_detect.img_points.reserve(n_detected * 4);
 
 		size_t matches = 0;
 		bool all_coplanar = true;
@@ -519,16 +520,16 @@ void ArucoServer::ImageSource::img_callback(const sensor_msgs::msg::Image::Const
 		ranges.reserve(n_detected * 2);
 		for(size_t i = 0; i < n_detected; i++)
 		{
-			auto search = ref->obj_tag_corners.find(ref->_detect.tag_ids[i]);
+			auto search = ref->obj_tag_corners.find(_detect.tag_ids[i]);
 			if(search != ref->obj_tag_corners.end())
 			{
 				auto& result = search->second;
 				auto& obj_corners = result->world_corners;
 				auto& rel_obj_corners = result->rel_corners;
-				auto& img_corners = ref->_detect.tag_corners[i];
+				auto& img_corners = _detect.tag_corners[i];
 
-				ref->_detect.obj_points.insert(ref->_detect.obj_points.end(), obj_corners.begin(), obj_corners.end());
-				ref->_detect.img_points.insert(ref->_detect.img_points.end(), img_corners.begin(), img_corners.end());
+				_detect.obj_points.insert(_detect.obj_points.end(), obj_corners.begin(), obj_corners.end());
+				_detect.img_points.insert(_detect.img_points.end(), img_corners.begin(), img_corners.end());
 
 				if(++matches == 1) primary_desc = result;	// first match
 
@@ -544,23 +545,23 @@ void ArucoServer::ImageSource::img_callback(const sensor_msgs::msg::Image::Const
 					img_corners,
 					this->calibration,
 					this->distortion,
-					ref->_detect.rvecs,
-					ref->_detect.tvecs,
+					_detect.rvecs,
+					_detect.tvecs,
 					false,
 					cv::SOLVEPNP_IPPE_SQUARE,
 					cv::noArray(),
 					cv::noArray(),
-					ref->_detect.eerrors);
+					_detect.eerrors);
 
 				// cv::drawFrameAxes(this->last_frame, this->calibration, this->distortion, _rvec, _tvec, 0.2f, 3);
 
-				if(ref->_detect.eerrors[0] > highest_individual_rms) highest_individual_rms = ref->_detect.eerrors[0];
+				if(_detect.eerrors[0] > highest_individual_rms) highest_individual_rms = _detect.eerrors[0];
 
-				for(size_t s = 0; s < ref->_detect.rvecs.size(); s++)
+				for(size_t s = 0; s < _detect.rvecs.size(); s++)
 				{
 					cv::Vec3d
-						&_rvec = ref->_detect.rvecs[s],
-						&_tvec = ref->_detect.tvecs[s];
+						&_rvec = _detect.rvecs[s],
+						&_tvec = _detect.tvecs[s];
 
 					ranges.push_back(cv::norm(_tvec));
 
@@ -568,7 +569,7 @@ void ArucoServer::ImageSource::img_callback(const sensor_msgs::msg::Image::Const
 
 					geometry_msgs::msg::TransformStamped tfs;
 					tfs.header = cv_img->header;
-					tfs.child_frame_id = std::format("tag_{}_s{}", ref->_detect.tag_ids[i], s);
+					tfs.child_frame_id = std::format("tag_{}_s{}", _detect.tag_ids[i], s);
 					tfs.transform.translation = reinterpret_cast<geometry_msgs::msg::Vector3&>(_tvec);
 					tfs.transform.rotation.w = q.w;
 					tfs.transform.rotation.x = q.x;
@@ -587,26 +588,26 @@ void ArucoServer::ImageSource::img_callback(const sensor_msgs::msg::Image::Const
 			}
 		}
 
-		// RCLCPP_INFO(ref->get_logger(), "MEGATAG solve params -- obj points: %lu, img points: %lu", ref->_detect.obj_points.size(), ref->_detect.img_points.size());
+		// RCLCPP_INFO(ref->get_logger(), "MEGATAG solve params -- obj points: %lu, img points: %lu", _detect.obj_points.size(), _detect.img_points.size());
 
 		if(matches == 1)	// reuse debug tvecs and rvecs ^^
 		{
-			Eigen::Isometry3d tf = ( Eigen::Quaterniond{ primary_desc->qw, primary_desc->qx, primary_desc->qy, primary_desc->qz } *
+			Eigen::Isometry3d tf = ( reinterpret_cast<const Eigen::Quaterniond&>(primary_desc->rotation[1]) *
 				Eigen::Translation3d{ -reinterpret_cast<const Eigen::Vector3d&>(primary_desc->translation) } );
 
-			const size_t n_solutions = ref->_detect.tvecs.size();
+			const size_t n_solutions = _detect.tvecs.size();
 			for(size_t i = 0; i < n_solutions; i++)
 			{
-				cv::Quatd r = cv::Quatd::createFromRvec(ref->_detect.rvecs[i]);
-				Eigen::Isometry3d _tf = reinterpret_cast<Eigen::Translation3d&>(ref->_detect.tvecs[i]) * (Eigen::Quaterniond{ r.w, r.x, r.y, r.z } * tf);
+				cv::Quatd r = cv::Quatd::createFromRvec(_detect.rvecs[i]);
+				Eigen::Isometry3d _tf = reinterpret_cast<Eigen::Translation3d&>(_detect.tvecs[i]) * (Eigen::Quaterniond{ r.w, r.x, r.y, r.z } * tf);
 
 				Eigen::Vector3d _t;
 				_t = _tf.translation();
-				ref->_detect.tvecs[i] = reinterpret_cast<cv::Vec3d&>(_t);
+				_detect.tvecs[i] = reinterpret_cast<cv::Vec3d&>(_t);
 
 				Eigen::Quaterniond _r;
 				_r = _tf.rotation();
-				ref->_detect.rvecs[i] = cv::Quatd{ _r.w(), _r.x(), _r.y(), _r.z() }.toRotVec();
+				_detect.rvecs[i] = cv::Quatd{ _r.w(), _r.x(), _r.y(), _r.z() }.toRotVec();
 			}
 
 			RCLCPP_INFO(ref->get_logger(), "SolvePnP successfully yielded %lu solution(s) using 1 [COPLANAR] tag match.", n_solutions);
@@ -616,21 +617,21 @@ void ArucoServer::ImageSource::img_callback(const sensor_msgs::msg::Image::Const
 			try
 			{
 				cv::solvePnPGeneric(
-					ref->_detect.obj_points,
-					ref->_detect.img_points,
+					_detect.obj_points,
+					_detect.img_points,
 					this->calibration,
 					this->distortion,
-					ref->_detect.rvecs,
-					ref->_detect.tvecs,
+					_detect.rvecs,
+					_detect.tvecs,
 					false,
 					(all_coplanar ? cv::SOLVEPNP_IPPE : cv::SOLVEPNP_SQPNP),	// if coplanar, we want all the solutions so we can manually filter the best
 					cv::noArray(),
 					cv::noArray(),
-					ref->_detect.eerrors);
+					_detect.eerrors);
 
 				RCLCPP_INFO(ref->get_logger(),
 					"SolvePnP successfully yielded %lu solution(s) using %lu [%s] tag matches.",
-					ref->_detect.tvecs.size(),
+					_detect.tvecs.size(),
 					matches,
 					all_coplanar ? "COPLANAR" : "non-coplanar");
 			}
@@ -640,8 +641,8 @@ void ArucoServer::ImageSource::img_callback(const sensor_msgs::msg::Image::Const
 			}
 		}
 
-		const size_t n_solutions = ref->_detect.tvecs.size();
-		if(n_solutions > 0 && n_solutions == ref->_detect.tvecs.size())
+		const size_t n_solutions = _detect.tvecs.size();
+		if(n_solutions > 0 && n_solutions == _detect.tvecs.size())
 		{
 			const tf2::TimePoint time_point = tf2::TimePoint{
 				std::chrono::seconds{cv_img->header.stamp.sec} +
@@ -681,8 +682,8 @@ void ArucoServer::ImageSource::img_callback(const sensor_msgs::msg::Image::Const
 			for(size_t i = 0; i < n_solutions; i++)
 			{
 				cv::Vec3d
-					&_rvec = ref->_detect.rvecs[i],
-					&_tvec = ref->_detect.tvecs[i];
+					&_rvec = _detect.rvecs[i],
+					&_tvec = _detect.tvecs[i];
 
 				cv::drawFrameAxes(this->last_frame, this->calibration, this->distortion, _rvec, _tvec, 0.5f, 5);
 
@@ -738,12 +739,12 @@ void ArucoServer::ImageSource::img_callback(const sensor_msgs::msg::Image::Const
 					// _lv * ref->_param.fitness_linear_diff_velocity_weight +
 					// _rv * ref->_param.fitness_angular_diff_velocity_weight +
 					(in_bounds ? 0. : ref->_param.fitness_oob_weight) + 
-					ref->_detect.eerrors[i] * ref->_param.fitness_rms_weight;
+					_detect.eerrors[i] * ref->_param.fitness_rms_weight;
 
 				// RCLCPP_INFO(ref->get_logger(),
 				// 	"Pose candidate [%lu] -- RMS: %f -- In bounds?: %d -- Translational(cm/s): %f -- Rotational(deg/s): %f -- SCORE: %f",
 				// 	i,
-				// 	ref->_detect.eerrors[i],
+				// 	_detect.eerrors[i],
 				// 	(int)in_bounds,
 				// 	_lv * 100.,
 				// 	_rv * 180. / M_PI,
@@ -755,7 +756,7 @@ void ArucoServer::ImageSource::img_callback(const sensor_msgs::msg::Image::Const
 					best_score = score;
 					// best_lv = _lv;
 					// best_rv = _rv;
-					best_rms = ref->_detect.eerrors[i];
+					best_rms = _detect.eerrors[i];
 					best_is_in_bounds = in_bounds;
 				}
 			}
@@ -999,6 +1000,7 @@ ArucoServer::TagDescription::Ptr ArucoServer::TagDescription::fromRaw(const std:
 	};
 	reinterpret_cast<cv::Point3d&>(_desc->translation) = (*_0 + *_2) / 2.;
 	reinterpret_cast<cv::Quatd&>(_desc->rotation) = cv::Quatd::createFromRotMat(rmat);
+	_desc->qww = _desc->qw;
 	reinterpret_cast<cv::Vec3d&>(_desc->plane) = *c;
 	_desc->d = c->dot(reinterpret_cast<cv::Vec3d&>(_desc->translation));
 	reinterpret_cast<cv::Vec4d&>(_desc->plane) /= cv::norm(reinterpret_cast<cv::Vec4d&>(_desc->plane));		// Eigen cast and normalize() causes crash :|
@@ -1007,7 +1009,7 @@ ArucoServer::TagDescription::Ptr ArucoServer::TagDescription::fromRaw(const std:
 }
 
 
-int main(int argc, char ** argv)
+int main(int argc, char** argv)
 {
 	rclcpp::init(argc, argv);
 	rclcpp::spin(std::make_shared<ArucoServer>());
