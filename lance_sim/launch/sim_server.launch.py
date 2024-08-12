@@ -45,7 +45,7 @@ def generate_launch_description():
 			os.path.join(ros_gz_sim, 'launch', 'gz_sim.launch.py')
 		),
 		launch_arguments={
-			'gz_args': ['-r -s -v4 ', world_dict.get(LaunchConfiguration('gz_map', default='arch'), arch_arena)],
+			'gz_args': ['-r -s -v4 ', world_dict.get(LaunchConfiguration('gz_map', default='arch'), artemis_arena_world)],
 			'on_exit_shutdown': 'true',
 			'pause': 'true'
 		}.items()
@@ -56,7 +56,7 @@ def generate_launch_description():
 			os.path.join(ros_gz_sim, 'launch', 'gz_sim.launch.py')
 		),
 		launch_arguments={'gz_args': '-g -v4 '}.items(),
-		condition = IfCondition(LaunchConfiguration('use_gz_gui', default='true'))
+		condition = IfCondition(LaunchConfiguration('gz_gui', default='true'))
 	)
 	# spawn the robot
 	spawn_lance_cmd = IncludeLaunchDescription(
@@ -104,7 +104,7 @@ def generate_launch_description():
 	)
 
 	return LaunchDescription([
-		DeclareLaunchArgument('use_gz_gui', default_value='false'),
+		DeclareLaunchArgument('gz_gui', default_value='false'),
 		DeclareLaunchArgument('gz_map', default_value='arena'),
 		set_env_vars_resources,
 		gzserver_cmd,

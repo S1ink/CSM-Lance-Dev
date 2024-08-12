@@ -119,20 +119,31 @@ def glim_launch_description(this_pkg, use_sim_time):
 
     return LaunchDescription([glim_node])
 
+def cardinal_perception_description(this_pkg, use_sim_time):
+
+    perception_node = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            os.path.join(get_package_share_directory('cardinal_perception'), 'launch', 'cardinal_perception.launch.py')
+        ),
+        launch_arguments = {'use_sim_time': use_sim_time}.items()
+    )
+
+    return LaunchDescription([perception_node])
+
 
 def generate_launch_description():
     this_pkg = get_package_share_directory('lance_sim')
-    aruco_pkg = get_package_share_directory('aruco_server')
+    # aruco_pkg = get_package_share_directory('aruco_server')
 
     use_sim_time = LaunchConfiguration('use_sim_time', default='true')
 
     # aruco server
-    aruco_server_cmd = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(
-            os.path.join(aruco_pkg, 'launch', 'aruco_server.launch.py')
-        ),
-        launch_arguments = {'use_sim_time': use_sim_time}.items()
-    )
+    # aruco_server_cmd = IncludeLaunchDescription(
+    #     PythonLaunchDescriptionSource(
+    #         os.path.join(aruco_pkg, 'launch', 'aruco_server.launch.py')
+    #     ),
+    #     launch_arguments = {'use_sim_time': use_sim_time}.items()
+    # )
     # robot_localization
     # robot_localization_cmd = Node(
     # 	name = 'ekf_filter_node',
@@ -152,9 +163,9 @@ def generate_launch_description():
     #     ]
     # )
 
-    ld = dlo_launch_description(this_pkg, use_sim_time)
+    ld = cardinal_perception_description(this_pkg, use_sim_time)
     ld.add_action(DeclareLaunchArgument('use_sim_time', default_value='true'))
-    ld.add_action(aruco_server_cmd)
+    # ld.add_action(aruco_server_cmd)
     # ld.add_action(nav2_costmap_cmd)
 
     return ld
