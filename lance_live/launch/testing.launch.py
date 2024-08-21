@@ -6,10 +6,26 @@ from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument
 from launch.substitutions import LaunchConfiguration
 from launch.conditions import IfCondition
-from launch.actions import IncludeLaunchDescription
+from launch.actions import IncludeLaunchDescription, GroupAction
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch_ros.actions import Node
 
+def make_usb_cam_node(base_name, config_path):
+    return Node(
+        name = base_name,
+        package = 'usb_cam',
+        executable = 'usb_cam_node_exe',
+        output = 'screen',
+        # namespace = base_name,
+        parameters = [config_path, {'use_sim_time': False}],
+        remappings = [
+            ('image_raw', f'{base_name}/image_raw'),
+            ('image_raw/compressed', f'{base_name}/image_compressed'),
+            ('image_raw/compressedDepth', f'{base_name}/compressedDepth'),
+            ('image_raw/theora', f'{base_name}/image_raw/theora'),
+            ('camera_info', f'{base_name}/camera_info')
+        ]
+    )
 
 def generate_launch_description():
 
@@ -27,9 +43,12 @@ def generate_launch_description():
         ]
     )
 
-    # launch image servers for each camera
-    # https://github.com/ros-drivers/usb_cam
-    # TODO
+    # launch image servers for each camera -- https://github.com/ros-drivers/usb_cam
+    camera_configs = os.path.join(pkg_path, 'config', 'cameras')
+    camera_nodes = GroupAction([
+        make_usb_cam_node(os.path.splitext(f)[0], os.path.join(camera_configs, f))
+        for f in os.listdir(camera_configs) if os.path.isfile(os.path.join(camera_configs, f))
+    ])
 
     # launch robot_state_publisher from lance_sim
     robot_state_publisher = IncludeLaunchDescription(
@@ -79,7 +98,7 @@ def generate_launch_description():
     return LaunchDescription([
         DeclareLaunchArgument('rviz', default_value='false'),
         sick_scan_xd,
-        # image servers
+        camera_nodes,
         cardinal_perception,
         robot_state_publisher,
         foxglove_bridge,
