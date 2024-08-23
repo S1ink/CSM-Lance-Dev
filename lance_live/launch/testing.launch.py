@@ -39,12 +39,12 @@ def generate_launch_description():
         executable = 'sick_generic_caller',
         output = 'screen',
         arguments = [
-            os.path.join(pkg_path, 'config', 'sick_multiscan.xml')
+            os.path.join(pkg_path, 'config', 'sick_multiscan.launch')
         ]
     )
 
     # launch image servers for each camera -- https://github.com/ros-drivers/usb_cam
-    camera_configs = os.path.join(pkg_path, 'config', 'cameras')
+    # camera_configs = os.path.join(pkg_path, 'config', 'cameras')
     # camera_nodes = GroupAction([
     #     make_usb_cam_node(os.path.splitext(f)[0], os.path.join(camera_configs, f))
     #     for f in os.listdir(camera_configs) if os.path.isfile(os.path.join(camera_configs, f))
