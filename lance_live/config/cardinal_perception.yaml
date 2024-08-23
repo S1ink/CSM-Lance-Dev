@@ -5,16 +5,12 @@
     odom_frame_id: "odom"       # odometry frame
     base_frame_id: "base_link"  # robot frame
 
-    scan_topic: "/lance/lidar_points"
-    imu_topic: "/lance/imu"
+    scan_topic: "/cloud_all_fields_fullframe"
+    imu_topic: "/sick_scansegment_xd/imu"
 
     # self explainatory - img & info topics are matched according to index in the subsequent parameter lists
-    img_topics: [ "/model/lance/left_cam/image",
-                  "/model/lance/fwd_cam/image",
-                  "/model/lance/rght_cam/image" ]
-    info_topics: [ "/model/lance/left_cam/camera_info",
-                   "/model/lance/fwd_cam/camera_info",
-                   "/model/lance/rght_cam/camera_info" ]
+    # img_topics: []
+    # info_topics: []
 
     debug:
       status_max_print_freq: 10.  # frequency for printing stats
@@ -40,7 +36,7 @@
 
     aruco:
       predefined_family_idx: 20     # tag family to detect -- 20 = AprilTag 36h11
-      tag_ids: [ 0., 1., 2., 3. ]   # the tag ids which should be used, and whose corners are defined below:
+      # tag_ids: []   # the tag ids which should be used, and whose corners are defined below:
       tag0: [ 0.216, 1.055, 0.06,
               0.216, 0.575, 0.06,
               0.216, 0.575, 0.54,

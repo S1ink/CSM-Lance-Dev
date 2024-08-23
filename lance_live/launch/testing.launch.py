@@ -45,10 +45,10 @@ def generate_launch_description():
 
     # launch image servers for each camera -- https://github.com/ros-drivers/usb_cam
     camera_configs = os.path.join(pkg_path, 'config', 'cameras')
-    camera_nodes = GroupAction([
-        make_usb_cam_node(os.path.splitext(f)[0], os.path.join(camera_configs, f))
-        for f in os.listdir(camera_configs) if os.path.isfile(os.path.join(camera_configs, f))
-    ])
+    # camera_nodes = GroupAction([
+    #     make_usb_cam_node(os.path.splitext(f)[0], os.path.join(camera_configs, f))
+    #     for f in os.listdir(camera_configs) if os.path.isfile(os.path.join(camera_configs, f))
+    # ])
 
     # launch robot_state_publisher from lance_sim
     robot_state_publisher = IncludeLaunchDescription(
@@ -98,7 +98,7 @@ def generate_launch_description():
     return LaunchDescription([
         DeclareLaunchArgument('rviz', default_value='false'),
         sick_scan_xd,
-        camera_nodes,
+        # camera_nodes,
         cardinal_perception,
         robot_state_publisher,
         foxglove_bridge,
