@@ -38,13 +38,13 @@ def generate_launch_description():
     #     launch_arguments = {'params_file' : os.path.join(pkg_path, 'config', 'nav2.yaml')}.items()
     # )
     # foxglove
-    # foxglove_node = Node(
-    #     name = 'foxglove_server',
-    #     package = 'foxglove_bridge',
-    #     executable = 'foxglove_bridge',
-    #     output = 'screen',
-    #     parameters = [os.path.join(pkg_path, 'config', 'foxglove_bridge.yaml'), {'use_sim_time': True}]
-    # )
+    foxglove_node = Node(
+        name = 'foxglove_server',
+        package = 'foxglove_bridge',
+        executable = 'foxglove_bridge',
+        output = 'screen',
+        parameters = [os.path.join(pkg_path, 'config', 'foxglove_bridge.yaml'), {'use_sim_time': True}]
+    )
 
     return LaunchDescription([
         robot_state_publisher_cmd,
