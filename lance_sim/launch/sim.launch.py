@@ -19,7 +19,8 @@ def generate_launch_description():
 		),
 		launch_arguments = {
 			'gz_gui' : LaunchConfiguration('gz_gui', default='true'),
-			'gz_map' : LaunchConfiguration('gz_map', default='arena')
+			'gz_map' : LaunchConfiguration('gz_map', default='arena'),
+			'rviz' : False
 		}.items()
 	)
 	sim_remote = IncludeLaunchDescription(

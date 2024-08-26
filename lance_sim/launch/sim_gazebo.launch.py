@@ -68,16 +68,26 @@ def generate_launch_description():
 		package = 'teleop_twist_joy',
 		executable = 'teleop_node',
 		output = 'screen',
-		parameters = [os.path.join(pkg_path, 'config', 'xbox_controller.yaml')],
+		parameters = [os.path.join(pkg_path, 'config', 'xbox_controller.yaml'), {'use_sim_time' : True}],
 		remappings = [('/cmd_vel', '/joystick_cmd_vel')]
+	)
+	# rviz
+	rviz = Node(
+		package = 'rviz2',
+		executable = 'rviz2',
+		parameters = [{'use_sim_time' : True}],
+		arguments = ['-d', os.path.join(pkg_path, 'config', 'sim.rviz')],
+		condition = IfCondition( LaunchConfiguration('rviz', default='false') )
 	)
 
 	return LaunchDescription([
 		DeclareLaunchArgument('gz_gui', default_value='false'),
 		DeclareLaunchArgument('gz_map', default_value='arena'),
+		DeclareLaunchArgument('rviz', default_value='false'),
 		set_env_vars_resources,
 		gzserver_cmd,
 		gzclient_cmd,
 		spawn_lance_cmd,
-		teleop_node
+		teleop_node,
+		rviz
 	])

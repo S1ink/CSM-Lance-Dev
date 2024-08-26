@@ -19,7 +19,8 @@ def generate_launch_description():
 		),
 		launch_arguments = {
 			'gz_gui' : LaunchConfiguration('gz_gui', default='true'),
-			'gz_map' : LaunchConfiguration('gz_map', default='arena')
+			'gz_map' : LaunchConfiguration('gz_map', default='arena'),
+			'rviz' : LaunchConfiguration('rviz', defualt='false')
 		}.items()
 	)
 	sim_coprocessor = IncludeLaunchDescription(
@@ -31,6 +32,7 @@ def generate_launch_description():
 	return LaunchDescription([
 		DeclareLaunchArgument('gz_gui', default_value='true'),
 		DeclareLaunchArgument('gz_map', default_value='arena'),
+		DeclareLaunchArgument('rviz', default_value='false'),
 		sim_gazebo,
 		sim_coprocessor
 	])
