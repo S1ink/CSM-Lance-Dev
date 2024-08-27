@@ -50,5 +50,5 @@ def generate_launch_description():
         robot_state_publisher_cmd,
         slam_impl_cmd,
         # nav2_launch,
-        # foxglove_node
+        foxglove_node
     ])

@@ -96,7 +96,7 @@
         </collision>
         <!-- Terrain -->
         <visual name = "terrain_visual">
-          <pose>3.44 2.5 0.4 0 0 3.1415926</pose>
+          <pose>3.61 2.67 0.4 0 0 3.1415926</pose>
           <geometry>
             <mesh>
               <uri>./meshes/lunar-terrain.dae</uri>
@@ -105,7 +105,7 @@
           </geometry>
         </visual>
         <collision name = "terrain_collision">
-          <pose>3.44 2.5 0.4 0 0 3.1415926</pose>
+          <pose>3.61 2.67 0.4 0 0 3.1415926</pose>
           <geometry>
             <mesh>
               <uri>./meshes/lunar-terrain.stl</uri>
