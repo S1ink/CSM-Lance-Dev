@@ -48,7 +48,13 @@ def generate_launch_description():
 		package='ros_gz_image',
 		executable='image_bridge',
 		parameters=[{'use_sim_time' : True}],
-		arguments=['/model/lance/fwd_cam/image', '/model/lance/rght_cam/image', '/model/lance/left_cam/image'],
+		arguments=[
+			'/model/lance/fwd_cam/image',
+			'/model/lance/rght_cam/image',
+			'/model/lance/left_cam/image',
+			'--ros-args',
+			'qos:=sensor_data'
+		],
 		output='screen',
 	)
 

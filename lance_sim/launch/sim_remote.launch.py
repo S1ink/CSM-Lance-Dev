@@ -17,14 +17,15 @@ def generate_launch_description():
 	joy_pub = Node(
 		package='joy',
 		executable='joy_node',
-		parameters=[os.path.join(pkg_path,'config','xbox_controller.yaml')],
+		parameters=[ os.path.join(pkg_path,'config','xbox_controller.yaml'), {'use_sim_time' : True} ],
 	)
 	# rviz
 	rviz = Node(
 		package = 'rviz2',
 		executable = 'rviz2',
 		arguments = ['-d', os.path.join(pkg_path, 'config', 'sim.rviz')],
-		condition = IfCondition( LaunchConfiguration('rviz', default='true') )
+		condition = IfCondition( LaunchConfiguration('rviz', default='true') ),
+		parameters = [{'use_sim_time' : True}]
 	)
 
 	return LaunchDescription([

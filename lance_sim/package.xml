@@ -27,6 +27,7 @@
   <depend>robot_state_publisher</depend>
   <depend>joy</depend>
   <depend>teleop_twist_joy</depend>
+  <depend>xacro</depend>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 
