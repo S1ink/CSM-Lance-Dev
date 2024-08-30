@@ -18,7 +18,7 @@ def generate_launch_description():
 			os.path.join(launch_file_dir, 'sim_server.launch.py')
 		),
 		launch_arguments = {
-			'gz_gui' : LaunchConfiguration('gz_gui', default='true'),
+			'gz_gui' : LaunchConfiguration('gz_gui', default='false'),
 			'gz_map' : LaunchConfiguration('gz_map', default='arena'),
 			'rviz' : 'false'
 		}.items()
@@ -28,14 +28,14 @@ def generate_launch_description():
 			os.path.join(launch_file_dir, 'sim_remote.launch.py')
 		),
 		launch_arguments = {
-			'rviz' : LaunchConfiguration('rviz', default='true')
+			'rviz' : LaunchConfiguration('rviz', default='false')
 		}.items()
 	)
 
 	return LaunchDescription([
-		DeclareLaunchArgument('gz_gui', default_value='true'),
+		DeclareLaunchArgument('gz_gui', default_value='false'),
 		DeclareLaunchArgument('gz_map', default_value='arena'),
-		DeclareLaunchArgument('rviz', default_value='true'),
+		DeclareLaunchArgument('rviz', default_value='false'),
 		sim_server,
 		sim_remote
 	])
