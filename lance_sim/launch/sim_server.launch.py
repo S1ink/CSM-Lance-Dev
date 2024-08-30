@@ -18,7 +18,7 @@ def generate_launch_description():
 			os.path.join(launch_file_dir, 'sim_gazebo.launch.py')
 		),
 		launch_arguments = {
-			'gz_gui' : LaunchConfiguration('gz_gui', default='true'),
+			'gz_gui' : LaunchConfiguration('gz_gui', default='false'),
 			'gz_map' : LaunchConfiguration('gz_map', default='arena'),
 			'rviz' : LaunchConfiguration('rviz', default='false')
 		}.items()
@@ -30,7 +30,7 @@ def generate_launch_description():
 	)
 
 	return LaunchDescription([
-		DeclareLaunchArgument('gz_gui', default_value='true'),
+		DeclareLaunchArgument('gz_gui', default_value='false'),
 		DeclareLaunchArgument('gz_map', default_value='arena'),
 		DeclareLaunchArgument('rviz', default_value='false'),
 		sim_gazebo,

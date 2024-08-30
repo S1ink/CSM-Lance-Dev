@@ -35,7 +35,10 @@ def generate_launch_description():
 	start_gazebo_ros_bridge_cmd = Node(
 		package='ros_gz_bridge',
 		executable='parameter_bridge',
-		parameters=[{'use_sim_time' : True}],
+		# parameters=[ {
+		# 	'use_sim_time' : True,
+		# 	# 'override_timestamps_with_wall_time' : True
+		# }],
 		arguments=[
 			'--ros-args',
 			'-p',
@@ -47,13 +50,14 @@ def generate_launch_description():
 	start_gazebo_ros_image_bridge_cmd = Node(
 		package='ros_gz_image',
 		executable='image_bridge',
-		parameters=[{'use_sim_time' : True}],
+		# parameters=[{'use_sim_time' : False}],
 		arguments=[
 			'/model/lance/fwd_cam/image',
 			'/model/lance/rght_cam/image',
 			'/model/lance/left_cam/image',
-			'--ros-args',
-			'qos:=sensor_data'
+			# '--ros-args',
+			# '-p',
+			# 'qos:=sensor_data'
 		],
 		output='screen',
 	)

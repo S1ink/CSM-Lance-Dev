@@ -39,7 +39,7 @@ def generate_launch_description():
     # )
     # foxglove
     foxglove_node = Node(
-        name = 'foxglove_server',
+        name = 'foxglove',
         package = 'foxglove_bridge',
         executable = 'foxglove_bridge',
         output = 'screen',

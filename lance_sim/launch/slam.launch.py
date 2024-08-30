@@ -125,7 +125,7 @@ def cardinal_perception_description(this_pkg, use_sim_time):
         PythonLaunchDescriptionSource(
             os.path.join(get_package_share_directory('cardinal_perception'), 'launch', 'cardinal_perception.launch.py')
         ),
-        launch_arguments = {'use_sim_time': use_sim_time}.items()
+        launch_arguments = {'use_sim_time': 'true'}.items()
     )
 
     return LaunchDescription([perception_node])
