@@ -26,13 +26,17 @@ def generate_launch_description():
 	sim_coprocessor = IncludeLaunchDescription(
 		PythonLaunchDescriptionSource(
 			os.path.join(launch_file_dir, 'sim_coprocessor.launch.py')
-		)
+		),
+		launch_arguments = {
+			'foxglove' : LaunchConfiguration('foxglove', default='true')
+		}.items()
 	)
 
 	return LaunchDescription([
 		DeclareLaunchArgument('gz_gui', default_value='false'),
 		DeclareLaunchArgument('gz_map', default_value='arena'),
 		DeclareLaunchArgument('rviz', default_value='false'),
+		DeclareLaunchArgument('foxglove', default_value='true'),
 		sim_gazebo,
 		sim_coprocessor
 	])

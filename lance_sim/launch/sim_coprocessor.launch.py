@@ -4,7 +4,10 @@ from ament_index_python.packages import get_package_share_directory
 
 from launch import LaunchDescription
 from launch.actions import IncludeLaunchDescription
+from launch.actions import DeclareLaunchArgument
+from launch.substitutions import LaunchConfiguration
 from launch.launch_description_sources import PythonLaunchDescriptionSource
+from launch.conditions import IfCondition
 from launch_ros.actions import Node
 
 
@@ -43,10 +46,12 @@ def generate_launch_description():
         package = 'foxglove_bridge',
         executable = 'foxglove_bridge',
         output = 'screen',
+        condition = IfCondition( LaunchConfiguration('foxglove', default='true') ),
         parameters = [os.path.join(pkg_path, 'config', 'foxglove_bridge.yaml'), {'use_sim_time': True}]
     )
 
     return LaunchDescription([
+        DeclareLaunchArgument('foxglove', default_value='true'),
         robot_state_publisher_cmd,
         slam_impl_cmd,
         # nav2_launch,
