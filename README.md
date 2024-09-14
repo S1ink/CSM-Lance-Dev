@@ -25,12 +25,13 @@ To run this project, you will need a ROS2 and Gazebo installation. __Currently, 
 	```bash
 	rosdep install --ignore-src --from-paths .
 	```
-6. Build and source (execute when in workspace directory):
+6. Check the [Cardinal-Perception](temp_perception/README.md) readme to install all required dependencies (ie. GTSAM). Note that it is not required to build this project separately as it is built recursively with this one.
+7. Build and source (execute when in workspace directory):
 	```bash
 	colcon build --symlink-install --executor parallel
 	source install/setup.bash
 	```
-7. Run using a launch file (this is an example of the current "main" simulation):
+8. Run using a launch file (this is an example of the current "main" simulation):
 	```
 	ros2 launch lance_sim sim.launch.py
 	```
