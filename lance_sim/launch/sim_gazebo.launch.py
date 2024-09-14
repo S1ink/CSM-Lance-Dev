@@ -19,13 +19,13 @@ def generate_launch_description():
 	launch_file_dir = os.path.join( pkg_path, 'launch' )
 	worlds_path = os.path.join( pkg_path, 'worlds' )
 
-	artemis_arena_world = os.path.join( worlds_path, 'artemis-arena.world' )
+	artemis_arena = os.path.join( worlds_path, 'artemis-arena.world' )
 	maze_world = os.path.join( worlds_path, 'maze.world' )
 	moon_world = os.path.join( worlds_path, 'moon.world' )
 	arch_arena = os.path.join( worlds_path, 'arch-arena.world' )
 
 	world_dict = {
-		'arena' : artemis_arena_world,
+		'arena' : artemis_arena,
 		'maze' : maze_world,
 		'moon' : moon_world,
 		'arch' : arch_arena
@@ -43,7 +43,7 @@ def generate_launch_description():
 			os.path.join(ros_gz_sim, 'launch', 'gz_sim.launch.py')
 		),
 		launch_arguments={
-			'gz_args': ['-r -s -v4 ', world_dict.get(LaunchConfiguration('gz_map', default='arch'), artemis_arena_world)],
+			'gz_args': ['-r -s -v4 ', world_dict.get(LaunchConfiguration('gz_map', default='arch'), artemis_arena)],
 			'on_exit_shutdown': 'true',
 			'pause': 'true'
 		}.items()
