@@ -18,6 +18,7 @@
   ros_type_name: "tf2_msgs/msg/TFMessage"
   gz_type_name: "gz.msgs.Pose_V"
   direction: GZ_TO_ROS
+  lazy: true
 
 # trackedvehicle odometry
 # - ros_topic_name: "/tf"
@@ -38,6 +39,9 @@
   ros_type_name: "sensor_msgs/msg/Imu"
   gz_type_name: "gz.msgs.IMU"
   direction: GZ_TO_ROS
+  lazy: true
+  subscriber_queue: 1
+  publisher_queue: 1
 
 # gz topic published by Sensors plugin (LIDAR)
 - ros_topic_name: "/lance/lidar_points"
@@ -45,6 +49,9 @@
   ros_type_name: "sensor_msgs/msg/PointCloud2"
   gz_type_name: "gz.msgs.PointCloudPacked"
   direction: GZ_TO_ROS
+  lazy: true
+  subscriber_queue: 1
+  publisher_queue: 1
 
 # gz topic published by Sensors plugin (Camera)
 - ros_topic_name: "/model/lance/fwd_cam/camera_info"

@@ -7,7 +7,6 @@ from launch.actions import DeclareLaunchArgument
 from launch.substitutions import LaunchConfiguration
 from launch.actions import IncludeLaunchDescription
 from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch_ros.actions import Node
 
 
 def generate_launch_description():
@@ -19,8 +18,10 @@ def generate_launch_description():
 			os.path.join(launch_file_dir, 'sim_server.launch.py')
 		),
 		launch_arguments = {
-			'use_gz_gui' : LaunchConfiguration('use_gz_gui', default='true'),
-			'gz_map' : LaunchConfiguration('gz_map', default='arena')
+			'gz_gui' : LaunchConfiguration('gz_gui', default='false'),
+			'gz_map' : LaunchConfiguration('gz_map', default='arena'),
+			'rviz' : LaunchConfiguration('rviz', default='false'),
+			'foxglove' : LaunchConfiguration('foxglove', default='true')
 		}.items()
 	)
 	sim_remote = IncludeLaunchDescription(
@@ -28,14 +29,15 @@ def generate_launch_description():
 			os.path.join(launch_file_dir, 'sim_remote.launch.py')
 		),
 		launch_arguments = {
-			'rviz' : LaunchConfiguration('rviz', default='true')
+			'rviz' : 'false'
 		}.items()
 	)
 
 	return LaunchDescription([
-		DeclareLaunchArgument('use_gz_gui', default_value='true'),
+		DeclareLaunchArgument('gz_gui', default_value='false'),
 		DeclareLaunchArgument('gz_map', default_value='arena'),
-		DeclareLaunchArgument('rviz', default_value='true'),
+		DeclareLaunchArgument('rviz', default_value='false'),
+		DeclareLaunchArgument('foxglove', default_value='true'),
 		sim_server,
 		sim_remote
 	])

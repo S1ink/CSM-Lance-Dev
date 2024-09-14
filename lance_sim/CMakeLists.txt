@@ -23,12 +23,12 @@ endif()
 
 # find dependencies
 find_package(ament_cmake REQUIRED)
-find_package(rclcpp REQUIRED)
-find_package(geometry_msgs REQUIRED)
-find_package(sensor_msgs REQUIRED)
-find_package(tf2_ros REQUIRED)
-find_package(tf2_sensor_msgs REQUIRED)
-find_package(tf2_geometry_msgs REQUIRED)
+# find_package(rclcpp REQUIRED)
+# find_package(geometry_msgs REQUIRED)
+# find_package(sensor_msgs REQUIRED)
+# find_package(tf2_ros REQUIRED)
+# find_package(tf2_sensor_msgs REQUIRED)
+# find_package(tf2_geometry_msgs REQUIRED)
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
@@ -41,23 +41,23 @@ if(BUILD_TESTING)
   ament_lint_auto_find_test_dependencies()
 endif()
 
-set(project_src "${CMAKE_CURRENT_LIST_DIR}/src")
+# set(project_src "${CMAKE_CURRENT_LIST_DIR}/src")
 
-add_executable(rectifier_node "${project_src}/rectifier/rectifier.cpp")
+# add_executable(rectifier_node "${project_src}/rectifier/rectifier.cpp")
 
-ament_target_dependencies(rectifier_node
-  "rclcpp"
-  "geometry_msgs"
-  "sensor_msgs"
-  "tf2_ros"
-  "tf2_sensor_msgs"
-  "tf2_geometry_msgs"
-)
+# ament_target_dependencies(rectifier_node
+#   "rclcpp"
+#   "geometry_msgs"
+#   "sensor_msgs"
+#   "tf2_ros"
+#   "tf2_sensor_msgs"
+#   "tf2_geometry_msgs"
+# )
 
-install(
-  TARGETS rectifier_node
-  DESTINATION lib/${PROJECT_NAME}
-)
+# install(
+#   TARGETS rectifier_node
+#   DESTINATION lib/${PROJECT_NAME}
+# )
 
 install(
   DIRECTORY config description launch worlds
