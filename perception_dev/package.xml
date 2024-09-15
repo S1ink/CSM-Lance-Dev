@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>perception_dev</name>
+  <version>0.0.1</version>
+  <description>Perception Development</description>
+  <maintainer email="samrichter888@gmail.com">Sam Richter</maintainer>
+  <license>TODO: License declaration</license>
+
+  <depend>csm_gz_sim</depend>
+  <depend>sick_scan_xd</depend>
+  <depend>usb_cam</depend>
+  <depend>cardinal_perception</depend>
+  <depend>foxglove_bridge</depend>
+  <depend>rviz2</depend>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <test_depend>ament_lint_auto</test_depend>
+  <test_depend>ament_lint_common</test_depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>
