@@ -1,6 +1,0 @@
-[submodule "temp_perception"]
-	path = temp_perception
-	url = https://github.com/S1ink/Cardinal-Perception
-[submodule "csm_gz_sim"]
-	path = csm_gz_sim
-	url = https://github.com/S1ink/csm_gz_sim
