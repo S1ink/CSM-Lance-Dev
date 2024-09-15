@@ -3,8 +3,8 @@
 
     <!-- Launch multiScan -->
     <!-- env name="ROSCONSOLE_CONFIG_FILE" value="/tmp/rosconsole_loglevel_warn.conf" / -->
-    <arg name="hostname" default="192.168.0.1"/>                                    <!-- IP address of sensor -->
-    <arg name="udp_receiver_ip" default=""/>                                        <!-- UDP destination IP address (ip address of udp receiver) -->
+    <arg name="hostname" default="10.11.11.3"/>                                    <!-- IP address of sensor -->
+    <arg name="udp_receiver_ip" default="10.11.11.43"/>                                        <!-- UDP destination IP address (ip address of udp receiver) -->
     <arg name="nodename" default="multiScan"/>
     <arg name="publish_frame_id" default="world" />                                 <!-- frame id of ros Laserscan messages, default: "world_<layer-id>" -->
     <arg name="publish_laserscan_segment_topic" default="scan_segment" />           <!-- topic of ros Laserscan segment messages -->

@@ -101,7 +101,7 @@ def generate_launch_description():
         DeclareLaunchArgument('foxglove', default_value='true'),
         sick_scan_xd,
         # camera_nodes,
-        # cardinal_perception,
+        cardinal_perception,
         robot_state_publisher,
         foxglove_bridge,
         rviz
