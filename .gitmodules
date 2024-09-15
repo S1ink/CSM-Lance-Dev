@@ -1,0 +1,6 @@
+[submodule "cardinal_perception"]
+	path = cardinal_perception
+	url = https://github.com/Cardinal-Space-Mining/Cardinal-Perception
+[submodule "csm_gz_sim"]
+	path = csm_gz_sim
+	url = https://github.com/Cardinal-Space-Mining/csm_gz_sim
