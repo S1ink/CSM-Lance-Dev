@@ -65,7 +65,7 @@ def generate_launch_description():
         executable = 'perception_node',
         output = 'screen',
         parameters = [
-            os.path.join(pkg_path, 'config', 'cardinal_perception.yaml'),   # TODO: use sick_scan_xd and camera driver output topics!
+            os.path.join(pkg_path, 'config', 'cardinal_perception_live.yaml'),   # TODO: use sick_scan_xd and camera driver output topics!
             {'use_sim_time': False}
         ],
         remappings = [
@@ -83,7 +83,8 @@ def generate_launch_description():
         parameters = [
             os.path.join(pkg_path, 'config', 'foxglove_bridge.yaml'),
             {'use_sim_time': False}
-        ]
+        ],
+        condition = IfCondition( LaunchConfiguration('foxglove', default='true') )
     )
 
     # rviz
@@ -97,9 +98,10 @@ def generate_launch_description():
 
     return LaunchDescription([
         DeclareLaunchArgument('rviz', default_value='false'),
+        DeclareLaunchArgument('foxglove', default_value='true'),
         sick_scan_xd,
         # camera_nodes,
-        cardinal_perception,
+        # cardinal_perception,
         robot_state_publisher,
         foxglove_bridge,
         rviz
