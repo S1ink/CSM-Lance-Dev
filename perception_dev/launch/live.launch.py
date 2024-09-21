@@ -6,7 +6,7 @@ from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument
 from launch.substitutions import LaunchConfiguration
 from launch.conditions import IfCondition
-from launch.actions import IncludeLaunchDescription, GroupAction
+from launch.actions import IncludeLaunchDescription, ExecuteProcess, GroupAction
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch_ros.actions import Node
 
@@ -31,6 +31,8 @@ def generate_launch_description():
 
     pkg_path = get_package_share_directory('perception_dev')
     sim_pkg_path = get_package_share_directory('csm_gz_sim')
+
+    record_mode = LaunchConfiguration('record', default='false')
 
     # launch sick_scan_xd using parameters from this project
     sick_scan_xd = Node(
@@ -65,13 +67,29 @@ def generate_launch_description():
         executable = 'perception_node',
         output = 'screen',
         parameters = [
-            os.path.join(pkg_path, 'config', 'cardinal_perception_live.yaml'),   # TODO: use sick_scan_xd and camera driver output topics!
+            os.path.join(pkg_path, 'config', 'cardinal_perception_live.yaml'),
             {'use_sim_time': False}
         ],
         remappings = [
             ('debug_img', 'cardinal_perception/debug_img'),
             ('filtered_scan', 'cardinal_perception/filtered_scan')
-        ]
+        ],
+        condition = IfCondition( LaunchConfiguration('processing', default='true') )
+    )
+
+    # bag2 record
+    bag_recorder = ExecuteProcess(
+        cmd = [
+            'ros2', 'bag', 'record',
+            '/cloud_all_fields_fullframe',
+            '/sick_scan_xd/imu',
+            '/tf',
+            '/tf_static',
+            '--compression-mode', 'file',
+            '--compression-format', 'zstd'
+        ],
+        output='screen',
+        condition = IfCondition( LaunchConfiguration('record', default='false') )
     )
 
     # launch foxglove_bridge
@@ -99,10 +117,13 @@ def generate_launch_description():
     return LaunchDescription([
         DeclareLaunchArgument('rviz', default_value='false'),
         DeclareLaunchArgument('foxglove', default_value='true'),
+        DeclareLaunchArgument('processing', default_value='true'),
+        DeclareLaunchArgument('record', default_value='false'),
         sick_scan_xd,
         # camera_nodes,
         cardinal_perception,
         robot_state_publisher,
+        bag_recorder,
         foxglove_bridge,
         rviz
     ])
