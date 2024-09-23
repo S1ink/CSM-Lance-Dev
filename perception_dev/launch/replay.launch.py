@@ -10,21 +10,43 @@ from launch.actions import IncludeLaunchDescription, ExecuteProcess, GroupAction
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch_ros.actions import Node
 
-def make_usb_cam_node(base_name, config_path):
+
+def make_scan_transformer(output_frame : str, override_frame : str, sub_topic : str, pub_topic : str):
     return Node(
-        name = base_name,
-        package = 'usb_cam',
-        executable = 'usb_cam_node_exe',
+        package = 'debug_tools',
+        executable = 'scan_transformer',
         output = 'screen',
-        # namespace = base_name,
-        parameters = [config_path, {'use_sim_time': False}],
+        parameters = [{
+            'target_frame': output_frame,
+            'override_frame': override_frame
+        }],
         remappings = [
-            ('image_raw', f'{base_name}/image_raw'),
-            ('image_raw/compressed', f'{base_name}/image_compressed'),
-            ('image_raw/compressedDepth', f'{base_name}/compressedDepth'),
-            ('image_raw/theora', f'{base_name}/image_raw/theora'),
-            ('camera_info', f'{base_name}/camera_info')
+            ('input_scan', sub_topic),
+            ('transformed_scan', pub_topic)
         ]
+    )
+
+def make_imu_transformer(output_frame : str, override_frame : str, sub_topic : str, pub_topic : str):
+    return Node(
+        package = 'debug_tools',
+        executable = 'imu_transformer',
+        output = 'screen',
+        parameters = [{
+            'target_frame': output_frame,
+            'override_frame': override_frame
+        }],
+        remappings = [
+            ('input_imu', sub_topic),
+            ('transformed_imu', pub_topic)
+        ]
+    )
+
+def make_imu_visualizer(topic : str):
+    return Node(
+        package = 'debug_tools',
+        executable = 'imu_visualizer',
+        output = 'screen',
+        parameters = [{ 'imu_topic': topic }]
     )
 
 def generate_launch_description():
@@ -32,30 +54,23 @@ def generate_launch_description():
     pkg_path = get_package_share_directory('perception_dev')
     sim_pkg_path = get_package_share_directory('csm_gz_sim')
 
-    # launch sick_scan_xd using parameters from this project
-    sick_scan_xd = Node(
-        name = 'sick_scan_xd',
-        package = 'sick_scan_xd',
-        executable = 'sick_generic_caller',
-        output = 'screen',
-        arguments = [
-            os.path.join(pkg_path, 'config', 'sick_multiscan.launch')
-        ]
-    )
-
-    # launch image servers for each camera -- https://github.com/ros-drivers/usb_cam
-    # camera_configs = os.path.join(pkg_path, 'config', 'cameras')
-    # camera_nodes = GroupAction([
-    #     make_usb_cam_node(os.path.splitext(f)[0], os.path.join(camera_configs, f))
-    #     for f in os.listdir(camera_configs) if os.path.isfile(os.path.join(camera_configs, f))
-    # ])
-
     # launch robot_state_publisher from lance_sim
     robot_state_publisher = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             os.path.join(sim_pkg_path, 'launch', 'robot_state_publisher.launch.py')
         ),
         launch_arguments = {'use_sim_time': 'false'}.items()
+    )
+
+    # bag2 play
+    bag_player = ExecuteProcess(
+        cmd = [
+            'ros2', 'bag', 'play',
+            LaunchConfiguration('bag', default=''),
+            '--loop',
+            '--topics', '/cloud_all_fields_fullframe', '/sick_scan_xd/imu'
+        ],
+        output='screen'
     )
 
     # launch cardinal_perception using parameters in this project
@@ -66,28 +81,17 @@ def generate_launch_description():
         output = 'screen',
         parameters = [
             os.path.join(pkg_path, 'config', 'cardinal_perception_live.yaml'),
-            {'use_sim_time': False}
+            {
+                'use_sim_time': False,
+                'scan_topic': '/cloud_all_fields_fullframe/transformed',
+                'imu_topic': '/sick_scan_xd/transformed_imu'
+            }
         ],
         remappings = [
             ('debug_img', 'cardinal_perception/debug_img'),
             ('filtered_scan', 'cardinal_perception/filtered_scan')
         ],
         condition = IfCondition( LaunchConfiguration('processing', default='true') )
-    )
-
-    # bag2 record
-    bag_recorder = ExecuteProcess(
-        cmd = [
-            'ros2', 'bag', 'record',
-            '/cloud_all_fields_fullframe',
-            '/sick_scan_xd/imu',
-            '/tf',
-            '/tf_static',
-            '--compression-mode', 'file',
-            '--compression-format', 'zstd'
-        ],
-        output='screen',
-        condition = IfCondition( LaunchConfiguration('record', default='false') )
     )
 
     # launch foxglove_bridge
@@ -115,13 +119,13 @@ def generate_launch_description():
     return LaunchDescription([
         DeclareLaunchArgument('rviz', default_value='false'),
         DeclareLaunchArgument('foxglove', default_value='true'),
-        DeclareLaunchArgument('processing', default_value='true'),
-        DeclareLaunchArgument('record', default_value='false'),
-        sick_scan_xd,
-        # camera_nodes,
-        cardinal_perception,
+        DeclareLaunchArgument('processing', default_value='false'),
+        DeclareLaunchArgument('bag', default_value=''),
         robot_state_publisher,
-        bag_recorder,
+        bag_player,
+        make_imu_transformer('frame_link', '', '/sick_scan_xd/imu', '/sick_scan_xd/transformed_imu'),
+        make_scan_transformer('lidar_link_inv_rotated', 'lidar_link', '/cloud_all_fields_fullframe', '/cloud_all_fields_fullframe/transformed'),
+        cardinal_perception,
         foxglove_bridge,
         rviz
     ])

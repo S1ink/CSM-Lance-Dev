@@ -86,8 +86,8 @@
       preprocessing:
         crop_filter:
           use: true                     # exclude points within the provided bounding box (in the base frame) from processing
-          min: [ -0.405, -0.38, 0.0 ]   # min corner ^
-          max: [ 0.735, 0.38, 0.959 ]   # max corner ^
+          min: [ -0.405, -0.6, 0.0 ]   # min corner ^
+          max: [ 0.735, 0.5, 0.959 ]   # max corner ^
         voxel_filter:
           scan:
             use: true   # voxelize each input scan?
