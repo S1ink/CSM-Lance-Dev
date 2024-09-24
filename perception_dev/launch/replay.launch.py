@@ -125,6 +125,7 @@ def generate_launch_description():
         bag_player,
         make_imu_transformer('frame_link', '', '/sick_scan_xd/imu', '/sick_scan_xd/transformed_imu'),
         make_scan_transformer('lidar_link_inv_rotated', 'lidar_link', '/cloud_all_fields_fullframe', '/cloud_all_fields_fullframe/transformed'),
+        make_imu_visualizer('/sick_scan_xd/transformed_imu'),
         cardinal_perception,
         foxglove_bridge,
         rviz
