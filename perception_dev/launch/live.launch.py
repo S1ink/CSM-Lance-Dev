@@ -27,6 +27,44 @@ def make_usb_cam_node(base_name, config_path):
         ]
     )
 
+def make_scan_transformer(output_frame : str, override_frame : str, sub_topic : str, pub_topic : str):
+    return Node(
+        package = 'debug_tools',
+        executable = 'scan_transformer',
+        output = 'screen',
+        parameters = [{
+            'target_frame': output_frame,
+            'override_frame': override_frame
+        }],
+        remappings = [
+            ('input_scan', sub_topic),
+            ('transformed_scan', pub_topic)
+        ]
+    )
+
+def make_imu_transformer(output_frame : str, override_frame : str, sub_topic : str, pub_topic : str):
+    return Node(
+        package = 'debug_tools',
+        executable = 'imu_transformer',
+        output = 'screen',
+        parameters = [{
+            'target_frame': output_frame,
+            'override_frame': override_frame
+        }],
+        remappings = [
+            ('input_imu', sub_topic),
+            ('transformed_imu', pub_topic)
+        ]
+    )
+
+def make_imu_visualizer(topic : str):
+    return Node(
+        package = 'debug_tools',
+        executable = 'imu_visualizer',
+        output = 'screen',
+        parameters = [{ 'imu_topic': topic }]
+    )
+
 def generate_launch_description():
 
     pkg_path = get_package_share_directory('perception_dev')
@@ -40,6 +78,19 @@ def generate_launch_description():
         output = 'screen',
         arguments = [
             os.path.join(pkg_path, 'config', 'sick_multiscan.launch')
+        ]
+    )
+    multiscan_driver = Node(
+        name = 'multiscan_driver',
+        package = 'multiscan_driver',
+        executable = 'multiscan_driver',
+        output = 'screen',
+        parameters = [
+            os.path.join(pkg_path, 'config', 'multiscan_driver.yaml')
+        ],
+        remappings = [
+            ('lidar_scan', 'multiscan/lidar_scan'),
+            ('lidar_imu', 'multiscan/imu')
         ]
     )
 
@@ -79,8 +130,8 @@ def generate_launch_description():
     bag_recorder = ExecuteProcess(
         cmd = [
             'ros2', 'bag', 'record',
-            '/cloud_all_fields_fullframe',
-            '/sick_scan_xd/imu',
+            '/multiscan/lidar_scan',
+            '/multiscan/imu',
             '/tf',
             '/tf_static',
             '--compression-mode', 'file',
@@ -117,11 +168,13 @@ def generate_launch_description():
         DeclareLaunchArgument('foxglove', default_value='true'),
         DeclareLaunchArgument('processing', default_value='true'),
         DeclareLaunchArgument('record', default_value='false'),
-        sick_scan_xd,
+        # sick_scan_xd,
+        multiscan_driver,
         # camera_nodes,
         cardinal_perception,
         robot_state_publisher,
         bag_recorder,
         foxglove_bridge,
         rviz
+        # make_imu_visualizer('/multiscan/imu')
     ])

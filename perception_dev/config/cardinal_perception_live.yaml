@@ -5,8 +5,8 @@
     odom_frame_id: "odom"       # odometry frame
     base_frame_id: "base_link"  # robot frame
 
-    scan_topic: "/cloud_all_fields_fullframe"
-    imu_topic: "/sick_scan_xd/imu"
+    scan_topic: "/multiscan/lidar_scan"
+    imu_topic: "/multiscan/imu"
 
     # self explainatory - img & info topics are matched according to index in the subsequent parameter lists
     # img_topics: []
