@@ -68,7 +68,7 @@ def generate_launch_description():
             'ros2', 'bag', 'play',
             LaunchConfiguration('bag', default=''),
             '--loop',
-            '--topics', '/cloud_all_fields_fullframe', '/sick_scan_xd/imu'
+            '--topics', '/multiscan/lidar_scan', '/multiscan/imu'
         ],
         output='screen'
     )
@@ -83,8 +83,8 @@ def generate_launch_description():
             os.path.join(pkg_path, 'config', 'cardinal_perception_live.yaml'),
             {
                 'use_sim_time': False,
-                'scan_topic': '/cloud_all_fields_fullframe/transformed',
-                'imu_topic': '/sick_scan_xd/transformed_imu'
+                'scan_topic': '/multiscan/lidar_scan',
+                'imu_topic': '/multiscan/imu'
             }
         ],
         remappings = [
@@ -123,9 +123,9 @@ def generate_launch_description():
         DeclareLaunchArgument('bag', default_value=''),
         robot_state_publisher,
         bag_player,
-        make_imu_transformer('frame_link', '', '/sick_scan_xd/imu', '/sick_scan_xd/transformed_imu'),
-        make_scan_transformer('lidar_link_inv_rotated', 'lidar_link', '/cloud_all_fields_fullframe', '/cloud_all_fields_fullframe/transformed'),
-        make_imu_visualizer('/sick_scan_xd/transformed_imu'),
+        make_imu_transformer('frame_link', '', '/multiscan/imu', '/multiscan/transformed_imu'),
+        # make_scan_transformer('lidar_link_inv_rotated', 'lidar_link', '/cloud_all_fields_fullframe', '/cloud_all_fields_fullframe/transformed'),
+        make_imu_visualizer('/multiscan/transformed_imu'),
         cardinal_perception,
         foxglove_bridge,
         rviz

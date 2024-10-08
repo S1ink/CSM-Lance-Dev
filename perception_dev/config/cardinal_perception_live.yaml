@@ -72,13 +72,13 @@
       adaptive_params: true   # whether or not keyframe params scale with "spaciousness"
       gravity_align: true     # enable/disable gravity alignment on startup
       keyframe:
-        thresh_D: 5.    # distance threshold in meters for creating a new keyframe
-        thresh_R: 45.   # rotation threshold in degrees for creating a new keyframe
+        thresh_D: 1.    # distance threshold in meters for creating a new keyframe
+        thresh_R: 30.   # rotation threshold in degrees for creating a new keyframe
       submap:
         keyframe:
-          knn: 10   # how many nearest-neightbor poses to extract when building a submap?
-          kcv: 10   # convex hull
-          kcc: 10   # concave hull
+          knn: 20   # how many nearest-neightbor poses to extract when building a submap?
+          kcv: 20   # convex hull
+          kcc: 20   # concave hull
       initial_pose:
         use: true                         # start with the provided pose?
         position: [ 0., 0., 0. ]          # x, y, z
@@ -91,31 +91,31 @@
         voxel_filter:
           scan:
             use: true   # voxelize each input scan?
-            res: 0.05   # leaf size
+            res: 0.04   # leaf size
           submap:
             use: true   # voxelize each submap?
-            res: 0.25   # leaf size
+            res: 0.04   # leaf size
       imu:
         use: true           # integrate imu data to hint GICP?
         calib_time: 3       # calibration time
         buffer_size: 2000   # measurement buffer length
       gicp:
-        min_num_points: 10  # minimum points required
+        min_num_points: 100  # minimum points required
         s2s:
-          k_correspondences: 10
-          max_correspondence_distance: 1.
-          max_iterations: 32
-          transformation_epsilon: 0.01
-          euclidean_fitness_epsilon: 0.01
+          k_correspondences: 25
+          max_correspondence_distance: 0.1
+          max_iterations: 64
+          transformation_epsilon: 0.001
+          euclidean_fitness_epsilon: 0.001
           ransac:
-            iterations: 5
-            outlier_rejection_thresh: 0.5
+            iterations: 12
+            outlier_rejection_thresh: 2.5
         s2m:
-          k_correspondences: 20
-          max_correspondence_distance: 0.5
-          max_iterations: 32
-          transformation_epsilon: 0.01
-          euclidean_fitness_epsilon: 0.01
+          k_correspondences: 40
+          max_correspondence_distance: 0.05
+          max_iterations: 64
+          transformation_epsilon: 0.001
+          euclidean_fitness_epsilon: 0.001
           ransac:
-            iterations: 5
-            outlier_rejection_thresh: 1.
+            iterations: 12
+            outlier_rejection_thresh: 5.
