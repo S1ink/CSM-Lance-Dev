@@ -71,15 +71,15 @@ def generate_launch_description():
     sim_pkg_path = get_package_share_directory('csm_gz_sim')
 
     # launch sick_scan_xd using parameters from this project
-    sick_scan_xd = Node(
-        name = 'sick_scan_xd',
-        package = 'sick_scan_xd',
-        executable = 'sick_generic_caller',
-        output = 'screen',
-        arguments = [
-            os.path.join(pkg_path, 'config', 'sick_multiscan.launch')
-        ]
-    )
+    # sick_scan_xd = Node(
+    #     name = 'sick_scan_xd',
+    #     package = 'sick_scan_xd',
+    #     executable = 'sick_generic_caller',
+    #     output = 'screen',
+    #     arguments = [
+    #         os.path.join(pkg_path, 'config', 'sick_multiscan.launch')
+    #     ]
+    # )
     multiscan_driver = Node(
         name = 'multiscan_driver',
         package = 'multiscan_driver',
@@ -89,8 +89,8 @@ def generate_launch_description():
             os.path.join(pkg_path, 'config', 'multiscan_driver.yaml')
         ],
         remappings = [
-            ('lidar_scan', 'multiscan/lidar_scan'),
-            ('lidar_imu', 'multiscan/imu')
+            ('lidar_scan', '/multiscan/lidar_scan'),
+            ('lidar_imu', '/multiscan/imu')
         ]
     )
 
@@ -134,8 +134,8 @@ def generate_launch_description():
             '/multiscan/imu',
             '/tf',
             '/tf_static',
-            '--compression-mode', 'file',
-            '--compression-format', 'zstd'
+            # '--compression-mode', 'file',
+            # '--compression-format', 'zstd'
         ],
         output='screen',
         condition = IfCondition( LaunchConfiguration('record', default='false') )

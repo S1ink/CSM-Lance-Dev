@@ -103,19 +103,19 @@
         min_num_points: 100  # minimum points required
         s2s:
           k_correspondences: 25
-          max_correspondence_distance: 0.1
+          max_correspondence_distance: 2.5
           max_iterations: 64
-          transformation_epsilon: 0.001
-          euclidean_fitness_epsilon: 0.001
+          transformation_epsilon: 0.05
+          euclidean_fitness_epsilon: 0.01
           ransac:
             iterations: 12
             outlier_rejection_thresh: 2.5
         s2m:
           k_correspondences: 40
-          max_correspondence_distance: 0.05
+          max_correspondence_distance: 0.5
           max_iterations: 64
-          transformation_epsilon: 0.001
-          euclidean_fitness_epsilon: 0.001
+          transformation_epsilon: 0.005
+          euclidean_fitness_epsilon: 0.005
           ransac:
             iterations: 12
             outlier_rejection_thresh: 5.
