@@ -11,6 +11,7 @@
   <depend>sick_scan_xd</depend>
   <depend>usb_cam</depend>
   <depend>cardinal_perception</depend>
+  <depend>sick_perception</depend>
   <depend>debug_tools</depend>
   <depend>foxglove_bridge</depend>
   <depend>rviz2</depend>

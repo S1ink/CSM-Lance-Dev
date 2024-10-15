@@ -7,3 +7,6 @@
 [submodule "multiscan_driver"]
 	path = multiscan_driver
 	url = https://github.com/S1ink/multiscan-driver
+[submodule "sick_perception"]
+	path = sick_perception
+	url = https://github.com/Cardinal-Space-Mining/Sick-Perception

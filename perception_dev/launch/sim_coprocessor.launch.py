@@ -29,6 +29,13 @@ def generate_launch_description():
         ),
         launch_arguments = {'use_sim_time': 'true'}.items()
     )
+    # sick_perception
+    launch_mapping = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            os.path.join(get_package_share_directory('sick_perception'), 'launch', 'sick_perception.launch.py')
+        ),
+        launch_arguments = {'use_sim_time': 'true'}.items()
+    )
     # foxglove server if enabled
     foxglove_node = Node(
         name = 'foxglove',
@@ -46,5 +53,6 @@ def generate_launch_description():
         DeclareLaunchArgument('foxglove', default_value='true'),
         launch_state_pub,
         launch_perception,
+        launch_mapping,
         foxglove_node
     ])
