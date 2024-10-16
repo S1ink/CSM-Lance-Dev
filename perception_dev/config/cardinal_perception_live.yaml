@@ -97,22 +97,23 @@
             res: 0.04   # leaf size
       imu:
         use: true           # integrate imu data to hint GICP?
+        use_orientation: true
         calib_time: 3       # calibration time
         buffer_size: 2000   # measurement buffer length
       gicp:
         min_num_points: 100  # minimum points required
         s2s:
           k_correspondences: 25
-          max_correspondence_distance: 2.5
+          max_correspondence_distance: 5.
           max_iterations: 64
-          transformation_epsilon: 0.05
-          euclidean_fitness_epsilon: 0.01
+          transformation_epsilon: 0.01
+          euclidean_fitness_epsilon: 0.005
           ransac:
             iterations: 12
             outlier_rejection_thresh: 2.5
         s2m:
           k_correspondences: 40
-          max_correspondence_distance: 0.5
+          max_correspondence_distance: 0.25
           max_iterations: 64
           transformation_epsilon: 0.005
           euclidean_fitness_epsilon: 0.005

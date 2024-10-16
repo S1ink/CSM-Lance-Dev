@@ -84,7 +84,7 @@ def generate_launch_description():
             os.path.join(pkg_path, 'config', 'cardinal_perception_live.yaml'),
             {
                 'use_sim_time': False,
-                'scan_topic': '/cloud_all_fields_fullframe/transformed',
+                # 'scan_topic': '/cloud_all_fields_fullframe/transformed',
                 # 'imu_topic': '/multiscan/imu',
             }
         ],
@@ -125,7 +125,7 @@ def generate_launch_description():
         robot_state_publisher,
         bag_player,
         make_imu_transformer('frame_link', '', '/multiscan/imu', '/multiscan/transformed_imu'),
-        make_scan_transformer('world', 'lidar_link', '/cloud_all_fields_fullframe', '/cloud_all_fields_fullframe/transformed'),
+        # make_scan_transformer('world', 'lidar_link', '/cloud_all_fields_fullframe', '/cloud_all_fields_fullframe/transformed'),
         make_imu_visualizer('/multiscan/transformed_imu'),
         cardinal_perception,
         foxglove_bridge,
