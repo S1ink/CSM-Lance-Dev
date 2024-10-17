@@ -69,7 +69,6 @@ target_include_directories(imu_transformer PUBLIC
   $<INSTALL_INTERFACE:include/${PROJECT_NAME}>)
 
 target_link_libraries(imu_transformer
-  ${PCL_LIBRARIES}
   Eigen3::Eigen)
 ament_target_dependencies(imu_transformer
   "rclcpp"
@@ -91,7 +90,6 @@ target_include_directories(imu_visualizer PUBLIC
   $<INSTALL_INTERFACE:include/${PROJECT_NAME}>)
 
 target_link_libraries(imu_visualizer
-  ${PCL_LIBRARIES}
   Eigen3::Eigen)
 ament_target_dependencies(imu_visualizer
   "rclcpp"
@@ -103,6 +101,26 @@ ament_target_dependencies(imu_visualizer
   "tf2_geometry_msgs")
 
 install(TARGETS imu_visualizer
+  DESTINATION lib/${PROJECT_NAME})
+
+# --------------------------------------------------------
+
+add_executable(accuracy_analyzer "src/accuracy_analyzer.cpp")
+target_include_directories(accuracy_analyzer PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include/${PROJECT_NAME}>)
+
+target_link_libraries(accuracy_analyzer
+  Eigen3::Eigen)
+ament_target_dependencies(accuracy_analyzer
+  "rclcpp"
+  "std_msgs"
+  "geometry_msgs"
+  "tf2_ros"
+  "tf2_sensor_msgs"
+  "tf2_geometry_msgs")
+
+install(TARGETS accuracy_analyzer
   DESTINATION lib/${PROJECT_NAME})
 
 

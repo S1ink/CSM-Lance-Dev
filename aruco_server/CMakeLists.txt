@@ -23,46 +23,46 @@ endif()
 
 # find dependencies
 find_package(ament_cmake REQUIRED)
-# find_package(rclcpp REQUIRED)
-# find_package(geometry_msgs REQUIRED)
-# find_package(sensor_msgs REQUIRED)
-# find_package(tf2_ros REQUIRED)
-# find_package(tf2_geometry_msgs REQUIRED)
-# find_package(cv_bridge REQUIRED)
-# find_package(image_transport REQUIRED)
-# find_package(OpenCV REQUIRED)
-# find_package(Eigen3 REQUIRED)
+find_package(rclcpp REQUIRED)
+find_package(geometry_msgs REQUIRED)
+find_package(sensor_msgs REQUIRED)
+find_package(tf2_ros REQUIRED)
+find_package(tf2_geometry_msgs REQUIRED)
+find_package(cv_bridge REQUIRED)
+find_package(image_transport REQUIRED)
+find_package(OpenCV REQUIRED)
+find_package(Eigen3 REQUIRED)
 
-# set(project_src "${CMAKE_CURRENT_LIST_DIR}/src")
+set(project_src "${CMAKE_CURRENT_LIST_DIR}/src")
 
-# add_executable(aruco_node "${project_src}/aruco_node.cpp")
-# target_link_libraries(aruco_node Eigen3::Eigen)
-# # target_include_directories(aruco_node PUBLIC
-# #   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-# #   $<INSTALL_INTERFACE:include/${PROJECT_NAME}>)
-# target_compile_features(aruco_node PUBLIC c_std_99 cxx_std_20)  # Require C99 and C++20
+add_executable(aruco_node "${project_src}/aruco_node.cpp")
+target_link_libraries(aruco_node Eigen3::Eigen)
+# target_include_directories(aruco_node PUBLIC
+#   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+#   $<INSTALL_INTERFACE:include/${PROJECT_NAME}>)
+target_compile_features(aruco_node PUBLIC c_std_99 cxx_std_20)  # Require C99 and C++20
 
-# ament_target_dependencies(aruco_node
-#   "rclcpp"
-#   "geometry_msgs"
-#   "sensor_msgs"
-#   "tf2_ros"
-#   "tf2_geometry_msgs"
-#   "cv_bridge"
-#   "image_transport"
-#   "OpenCV"
-#   "Eigen3"
-# )
+ament_target_dependencies(aruco_node
+  "rclcpp"
+  "geometry_msgs"
+  "sensor_msgs"
+  "tf2_ros"
+  "tf2_geometry_msgs"
+  "cv_bridge"
+  "image_transport"
+  "OpenCV"
+  "Eigen3"
+)
 
-# install(
-#   TARGETS aruco_node
-#   DESTINATION lib/${PROJECT_NAME}
-# )
+install(
+  TARGETS aruco_node
+  DESTINATION lib/${PROJECT_NAME}
+)
 
-# install(
-#   DIRECTORY config launch
-#   DESTINATION share/${PROJECT_NAME}
-# )
+install(
+  DIRECTORY config launch
+  DESTINATION share/${PROJECT_NAME}
+)
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)

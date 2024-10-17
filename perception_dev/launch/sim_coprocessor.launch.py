@@ -11,6 +11,24 @@ from launch.conditions import IfCondition
 from launch_ros.actions import Node
 
 
+def make_accuracy_analyzer(active_frame : str = 'base_link', origin_frame : str = 'map', validation_frame : str = 'gz_base_link', sample_window : float = 0.25):
+    return Node(
+        package = 'debug_tools',
+        executable = 'accuracy_analyzer',
+        output = 'screen',
+        parameters = [{
+            'origin_frame_id': origin_frame,
+            'active_frame_id': active_frame,
+            'validation_frame_id': validation_frame,
+            'std_sample_window_s': sample_window,
+            'use_sim_time': True
+        }],
+        # remappings = [
+        #     ('input_scan', sub_topic),
+        #     ('transformed_scan', pub_topic)
+        # ]
+    )
+
 def generate_launch_description():
 
     pkg_path = get_package_share_directory('perception_dev')
@@ -54,5 +72,6 @@ def generate_launch_description():
         launch_state_pub,
         launch_perception,
         launch_mapping,
-        foxglove_node
+        foxglove_node,
+        make_accuracy_analyzer('base_link', 'map', 'gz_base_link', 0.25)
     ])
