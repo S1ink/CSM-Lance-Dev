@@ -49,6 +49,24 @@ def make_imu_visualizer(topic : str):
         parameters = [{ 'imu_topic': topic }]
     )
 
+def make_accuracy_analyzer(active_frame : str = 'base_link', origin_frame : str = 'map', validation_frame : str = 'gz_base_link', sample_window : float = 0.25):
+    return Node(
+        package = 'debug_tools',
+        executable = 'accuracy_analyzer',
+        output = 'screen',
+        parameters = [{
+            'origin_frame_id': origin_frame,
+            'active_frame_id': active_frame,
+            'validation_frame_id': validation_frame,
+            'std_sample_window_s': sample_window,
+            'use_sim_time': False
+        }],
+        # remappings = [
+        #     ('input_scan', sub_topic),
+        #     ('transformed_scan', pub_topic)
+        # ]
+    )
+
 def generate_launch_description():
 
     pkg_path = get_package_share_directory('perception_dev')
@@ -94,6 +112,14 @@ def generate_launch_description():
         ],
         condition = IfCondition( LaunchConfiguration('processing', default='true') )
     )
+    # sick_perception
+    sick_perception = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            os.path.join(get_package_share_directory('sick_perception'), 'launch', 'sick_perception.launch.py')
+        ),
+        launch_arguments = {'use_sim_time': 'false'}.items(),
+        condition = IfCondition( LaunchConfiguration('processing', default='true') )
+    )
 
     # launch foxglove_bridge
     foxglove_bridge = Node(
@@ -127,7 +153,9 @@ def generate_launch_description():
         make_imu_transformer('frame_link', '', '/multiscan/imu', '/multiscan/transformed_imu'),
         # make_scan_transformer('world', 'lidar_link', '/cloud_all_fields_fullframe', '/cloud_all_fields_fullframe/transformed'),
         make_imu_visualizer('/multiscan/transformed_imu'),
+        make_accuracy_analyzer('base_link', 'map', '', 0.25),
         cardinal_perception,
+        sick_perception,
         foxglove_bridge,
         rviz
     ])
