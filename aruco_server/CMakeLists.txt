@@ -64,6 +64,10 @@ install(
   DESTINATION share/${PROJECT_NAME}
 )
 
+if(${cv_bridge_VERSION} GREATER "3.3.0")
+  add_compile_definitions(USE_CV_BRIDGE_HPP)
+endif()
+
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
   # the following line skips the linter which checks for copyrights

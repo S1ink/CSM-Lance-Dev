@@ -47,14 +47,14 @@ public:
         util::declare_param(this, "validation_frame_id", this->validation_frame, "gz_base_link");
         util::declare_param(this, "std_sample_window_s", this->std_sample_window_s, 0.25);
 
-        this->translational_error_vec_pub = this->create_publisher<geometry_msgs::msg::Vector3Stamped>("/accuracy_analyzer/translational_error_vec", rclcpp::BestAvailableQoS{});
-        this->translational_std_vec_pub = this->create_publisher<geometry_msgs::msg::Vector3Stamped>("/accuracy_analyzer/translational_std_vec", rclcpp::BestAvailableQoS{});
-        this->rotational_error_vec_pub = this->create_publisher<geometry_msgs::msg::Vector3Stamped>("/accuracy_analyzer/rotational_error_vec", rclcpp::BestAvailableQoS{});
-        this->rotational_std_vec_pub = this->create_publisher<geometry_msgs::msg::Vector3Stamped>("/accuracy_analyzer/rotational_std_vec", rclcpp::BestAvailableQoS{});
-        this->translational_error_pub = this->create_publisher<std_msgs::msg::Float64>("/accuracy_analyzer/translational_error", rclcpp::BestAvailableQoS{});
-        this->translational_std_pub = this->create_publisher<std_msgs::msg::Float64>("/accuracy_analyzer/translational_std", rclcpp::BestAvailableQoS{});
-        this->rotational_error_pub = this->create_publisher<std_msgs::msg::Float64>("/accuracy_analyzer/rotational_error", rclcpp::BestAvailableQoS{});
-        this->rotational_std_pub = this->create_publisher<std_msgs::msg::Float64>("/accuracy_analyzer/rotational_std", rclcpp::BestAvailableQoS{});
+        this->translational_error_vec_pub = this->create_publisher<geometry_msgs::msg::Vector3Stamped>("/accuracy_analyzer/translational_error_vec", rclcpp::SensorDataQoS{});
+        this->translational_std_vec_pub = this->create_publisher<geometry_msgs::msg::Vector3Stamped>("/accuracy_analyzer/translational_std_vec", rclcpp::SensorDataQoS{});
+        this->rotational_error_vec_pub = this->create_publisher<geometry_msgs::msg::Vector3Stamped>("/accuracy_analyzer/rotational_error_vec", rclcpp::SensorDataQoS{});
+        this->rotational_std_vec_pub = this->create_publisher<geometry_msgs::msg::Vector3Stamped>("/accuracy_analyzer/rotational_std_vec", rclcpp::SensorDataQoS{});
+        this->translational_error_pub = this->create_publisher<std_msgs::msg::Float64>("/accuracy_analyzer/translational_error", rclcpp::SensorDataQoS{});
+        this->translational_std_pub = this->create_publisher<std_msgs::msg::Float64>("/accuracy_analyzer/translational_std", rclcpp::SensorDataQoS{});
+        this->rotational_error_pub = this->create_publisher<std_msgs::msg::Float64>("/accuracy_analyzer/rotational_error", rclcpp::SensorDataQoS{});
+        this->rotational_std_pub = this->create_publisher<std_msgs::msg::Float64>("/accuracy_analyzer/rotational_std", rclcpp::SensorDataQoS{});
 
         if(!this->active_frame.empty())
         {

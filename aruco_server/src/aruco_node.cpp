@@ -5,7 +5,6 @@
 #include <vector>
 #include <array>
 #include <utility>
-#include <format>
 #include <deque>
 #include <functional>
 #include <unordered_map>
@@ -26,7 +25,11 @@
 #include <std_msgs/msg/int64.hpp>
 #include <std_msgs/msg/float64.hpp>
 
+#ifdef USE_CV_BRIDGE_HPP
 #include <cv_bridge/cv_bridge.hpp>
+#else
+#include <cv_bridge/cv_bridge.h>
+#endif
 #include <image_transport/image_transport.hpp>
 
 #include <opencv2/core/quaternion.hpp>
@@ -510,7 +513,7 @@ void ArucoServer::ImageSource::img_callback(const sensor_msgs::msg::Image::Const
 
 		size_t matches = 0;
 		bool all_coplanar = true;
-		cv::Vec4d _plane = cv::Vec4d::zeros();
+		cv::Vec4d _plane = cv::Vec4d::all(0);
 		TagDescription::ConstPtr primary_desc;
 		std::vector<double> ranges;
 		double
@@ -569,7 +572,9 @@ void ArucoServer::ImageSource::img_callback(const sensor_msgs::msg::Image::Const
 
 					geometry_msgs::msg::TransformStamped tfs;
 					tfs.header = cv_img->header;
-					tfs.child_frame_id = std::format("tag_{}_s{}", _detect.tag_ids[i], s);
+					std::ostringstream tframe;
+					tframe << "tag_" << _detect.tag_ids[i] << "_s" << s;
+					tfs.child_frame_id = tframe.str();
 					tfs.transform.translation = reinterpret_cast<geometry_msgs::msg::Vector3&>(_tvec);
 					tfs.transform.rotation.w = q.w;
 					tfs.transform.rotation.x = q.x;
@@ -699,7 +704,9 @@ void ArucoServer::ImageSource::img_callback(const sensor_msgs::msg::Image::Const
 
 				geometry_msgs::msg::TransformStamped cam2w;		// camera to tags origin
 				cam2w.header = cv_img->header;
-				cam2w.child_frame_id = std::format("tags_odom_{}", i);
+				std::ostringstream tframe;
+				tframe << "tags_odom_" << i;
+				cam2w.child_frame_id = tframe.str();
 				cam2w.transform.translation = reinterpret_cast<geometry_msgs::msg::Vector3&>(t);
 				cam2w.transform.rotation = reinterpret_cast<geometry_msgs::msg::Quaternion&>(q);
 
