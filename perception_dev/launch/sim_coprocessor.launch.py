@@ -71,7 +71,7 @@ def generate_launch_description():
         DeclareLaunchArgument('foxglove', default_value='true'),
         launch_state_pub,
         launch_perception,
-        launch_mapping,
+        # launch_mapping,
         foxglove_node,
-        make_accuracy_analyzer('base_link', 'map', 'gz_base_link', 0.25)
+        # make_accuracy_analyzer('base_link', 'map', 'gz_base_link', 0.25)
     ])
