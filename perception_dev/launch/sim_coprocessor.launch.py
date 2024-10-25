@@ -54,6 +54,35 @@ def generate_launch_description():
         ),
         launch_arguments = {'use_sim_time': 'true'}.items()
     )
+    launch_octomap = Node(
+        name = 'octomap_server',
+        package = 'octomap_server',
+        executable = 'octomap_server_node',
+        output = 'screen',
+        parameters = [
+            {
+                'use_sim_time': True,
+                'resolution': 0.04,
+                'frame_id': 'map',
+                'base_frame_id': 'base_link',
+                'sensor_model.max_range': 3.0,
+                'filter_ground_plane': False,
+                'filter_speckles': False,
+                'latch': False,
+                'max_depth': 16,
+                'publish_free_space': False,
+                'sensor_model.min': 0.12,
+                'sensor_model.max': 0.97,
+                'sensor_model.hit': 0.8,
+                'sensor_model.miss': 0.3,
+                'start_type_description_service': False,
+                'use_height_map': False
+            }
+        ],
+        remappings = [
+            ('cloud_in', '/cardinal_perception/filtered_scan')
+        ]
+    )
     # foxglove server if enabled
     foxglove_node = Node(
         name = 'foxglove',
@@ -72,6 +101,7 @@ def generate_launch_description():
         launch_state_pub,
         launch_perception,
         # launch_mapping,
+        launch_octomap,
         foxglove_node,
         # make_accuracy_analyzer('base_link', 'map', 'gz_base_link', 0.25)
     ])

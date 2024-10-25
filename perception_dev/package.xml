@@ -14,6 +14,7 @@
   <depend>sick_perception</depend>
   <depend>debug_tools</depend>
   <depend>foxglove_bridge</depend>
+  <depend>octomap_server</depend>
   <depend>rviz2</depend>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
