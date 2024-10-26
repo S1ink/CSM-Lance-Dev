@@ -22,7 +22,7 @@ def make_camera_driver(subdir, is_ip = False):
 def generate_launch_description():
 
     cameras = [
-        ('arducam1', False)
+        ('uvc1', False)
     ]
     cam_nodes = [
         make_camera_driver(x[0], x[1])

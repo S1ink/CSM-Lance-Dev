@@ -95,7 +95,7 @@ def generate_launch_description():
         DeclareLaunchArgument('record', default_value='false'),
         robot_state_publisher,
         multiscan_driver,
-        launch_tag_detection,
+        # launch_tag_detection,
         launch_perception,
         bag_recorder,
         foxglove_node,
