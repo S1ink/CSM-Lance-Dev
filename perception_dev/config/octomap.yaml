@@ -1,0 +1,19 @@
+/**:
+  ros__parameters:
+
+    resolution: 0.04
+    frame_id: 'map'
+    base_frame_id: 'base_link'
+    sensor_model:
+      min: 0.12
+      max: 0.97
+      hit: 0.8
+      miss: 0.3
+      max_range: 3.0
+    filter_ground_plane: false
+    filter_speckles: false
+    latch: false
+    max_depth: 16
+    publish_free_space: false
+    start_type_description_service: false
+    use_height_map: false

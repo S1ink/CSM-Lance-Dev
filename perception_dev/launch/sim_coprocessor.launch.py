@@ -11,24 +11,6 @@ from launch.conditions import IfCondition
 from launch_ros.actions import Node
 
 
-def make_accuracy_analyzer(active_frame : str = 'base_link', origin_frame : str = 'map', validation_frame : str = 'gz_base_link', sample_window : float = 0.25):
-    return Node(
-        package = 'debug_tools',
-        executable = 'accuracy_analyzer',
-        output = 'screen',
-        parameters = [{
-            'origin_frame_id': origin_frame,
-            'active_frame_id': active_frame,
-            'validation_frame_id': validation_frame,
-            'std_sample_window_s': sample_window,
-            'use_sim_time': True
-        }],
-        # remappings = [
-        #     ('input_scan', sub_topic),
-        #     ('transformed_scan', pub_topic)
-        # ]
-    )
-
 def generate_launch_description():
 
     pkg_path = get_package_share_directory('perception_dev')
@@ -40,68 +22,25 @@ def generate_launch_description():
         ),
         launch_arguments = {'use_sim_time': 'true'}.items()
     )
-    # cardinal_perception
+    # perception stack
     launch_perception = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
-            os.path.join(get_package_share_directory('cardinal_perception'), 'launch', 'cardinal_perception.launch.py')
+            os.path.join(pkg_path, 'launch', 'perception.launch.py')
         ),
-        launch_arguments = {'use_sim_time': 'true'}.items()
-    )
-    # sick_perception
-    launch_mapping = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(
-            os.path.join(get_package_share_directory('sick_perception'), 'launch', 'sick_perception.launch.py')
-        ),
-        launch_arguments = {'use_sim_time': 'true'}.items()
-    )
-    launch_octomap = Node(
-        name = 'octomap_server',
-        package = 'octomap_server',
-        executable = 'octomap_server_node',
-        output = 'screen',
-        parameters = [
-            {
-                'use_sim_time': True,
-                'resolution': 0.04,
-                'frame_id': 'map',
-                'base_frame_id': 'base_link',
-                'sensor_model.max_range': 3.0,
-                'filter_ground_plane': False,
-                'filter_speckles': False,
-                'latch': False,
-                'max_depth': 16,
-                'publish_free_space': False,
-                'sensor_model.min': 0.12,
-                'sensor_model.max': 0.97,
-                'sensor_model.hit': 0.8,
-                'sensor_model.miss': 0.3,
-                'start_type_description_service': False,
-                'use_height_map': False
-            }
-        ],
-        remappings = [
-            ('cloud_in', '/cardinal_perception/filtered_scan')
-        ]
+        launch_arguments = {'is_sim': 'true'}.items()
     )
     # foxglove server if enabled
-    foxglove_node = Node(
-        name = 'foxglove',
-        package = 'foxglove_bridge',
-        executable = 'foxglove_bridge',
-        output = 'screen',
-        condition = IfCondition( LaunchConfiguration('foxglove', default='true') ),
-        parameters = [
-            os.path.join(pkg_path, 'config', 'foxglove_bridge.yaml'),
-            {'use_sim_time': True}
-        ]
+    foxglove_node = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            os.path.join(pkg_path, 'launch', 'foxglove.launch.py')
+        ),
+        launch_arguments = {'use_sim_time': 'true'}.items(),
+        condition = IfCondition(LaunchConfiguration('foxglove', default='true'))
     )
 
     return LaunchDescription([
         DeclareLaunchArgument('foxglove', default_value='true'),
         launch_state_pub,
         launch_perception,
-        # launch_mapping,
-        launch_octomap,
-        foxglove_node,
-        # make_accuracy_analyzer('base_link', 'map', 'gz_base_link', 0.25)
+        foxglove_node
     ])

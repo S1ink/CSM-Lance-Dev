@@ -1,0 +1,95 @@
+# -----------------------------------------------------------------------------
+#                        SLAM system definition for MOLA
+#
+# This file defines: Input and output with ROS 2, the MOLA Visualizer.
+# This can be launched with the ROS2 launch file "ros2-lidar-odometry.launch.py"
+# -----------------------------------------------------------------------------
+
+modules:
+  # =====================
+  # MolaViz
+  # =====================
+  - name: viz
+    type: mola::MolaViz
+    #verbosity_level: DEBUG
+    params: ~ # none
+
+  # =====================
+  # LidarOdometry
+  # =====================
+  - name: icp_odom
+    type: mola::LidarOdometry
+    #verbosity_level: DEBUG
+    raw_data_source: 'ros2_bridge'
+    # This includes here a whole block "params: (...)"
+    # with the LIDAR-Odometry pipeline configuration:
+    params: '${MOLA_ODOMETRY_PIPELINE_YAML|./mola-lidar3d-default.yaml}'
+
+  # =====================
+  # ROS2 <-> MOLA
+  # =====================
+  - type: mola::BridgeROS2
+    name: ros2_bridge
+    # In BridgeROS2, this execution rate (Hz) determines the
+    # rate of publishing odometry observations, if enabled.
+    # All other subscribed sensors are forwarded to the MOLA
+    # system without delay as they are received from ROS.
+    execution_rate: 20 # Hz
+    #verbosity_level: INFO
+
+    gui_preview_sensors:
+      - raw_sensor_label: ${MOLA_LIDAR_NAME|lidar}
+        decimation: 1
+        win_pos: 5 5 400 400
+
+    params:
+      # Whenever a MOLA odometry/SLAM system publishes a new pose estimate
+      # it will be forwarded to /tf as a transformation between: 
+      # `reference_frame` -> `base_link_frame`
+      base_link_frame: '${MOLA_TF_BASE_FOOTPRINT|base_link}'
+      odom_frame: odom
+      
+      # If true, the /tf 'odom_frame'->'base_link_frame' will be forwarded to MOLA as CObservationOdometry.
+      forward_ros_tf_as_mola_odometry_observations: false
+
+      # If true, an nav_msgs/Odometry message will be also published from SLAM solution:
+      publish_odometry_msgs_from_slam: true
+
+      # do not publish to /tf from ground_truth, if available
+      publish_tf_from_robot_pose_observations: false
+
+      # Everything published to ROS2 will have timestamps from:
+      #  - true: the original dataset timestamps.
+      #  - false: the wall-clock time.
+      publish_in_sim_time: false
+
+      # Period [s] to publish new localization estimates to ROS2 from the MOLA SLAM solution:
+      period_publish_new_localization: 0.1 # [s]
+
+      # Period [s] to publish the updated map to ROS2 from the MOLA SLAM solution:
+      period_publish_new_map: 1.0 # [s]
+
+      # ROS2 topics to be forwarded to the MOLA system:
+      subscribe:
+        - topic: ${MOLA_LIDAR_TOPIC|/multiscan/lidar_scan}
+          msg_type: PointCloud2
+          output_sensor_label: ${MOLA_LIDAR_NAME|lidar}
+          # If present, this will override whatever /tf tells about the sensor pose:
+          fixed_sensor_pose: "${LIDAR_POSE_X|0} ${LIDAR_POSE_Y|0} ${LIDAR_POSE_Z|0} ${LIDAR_POSE_YAW|0} ${LIDAR_POSE_PITCH|0} ${LIDAR_POSE_ROLL|0}"  # 'x y z yaw_deg pitch_deg roll_deg''
+          use_fixed_sensor_pose: ${MOLA_USE_FIXED_LIDAR_POSE|false}
+
+        # - topic: ${MOLA_GNSS_TOPIC|/gps}
+        #   msg_type: NavSatFix
+        #   output_sensor_label: 'gps'
+        #   # If present, this will override whatever /tf tells about the sensor pose:
+        #   fixed_sensor_pose: "0 0 0 0 0 0"  # 'x y z yaw_deg pitch_deg roll_deg''
+        #   use_fixed_sensor_pose: ${MOLA_USE_FIXED_GNSS_POSE|true}
+
+        - topic: '/multiscan/imu'
+          msg_type: Imu
+          output_sensor_label: 'imu'
+          use_fixed_sensor_pose: false
+
+        #- topic: /odom
+        #  msg_type: Odometry
+        #  output_sensor_label: odom

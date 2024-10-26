@@ -6,66 +6,10 @@ from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument
 from launch.substitutions import LaunchConfiguration
 from launch.conditions import IfCondition
-from launch.actions import IncludeLaunchDescription, ExecuteProcess, GroupAction
+from launch.actions import IncludeLaunchDescription, ExecuteProcess
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch_ros.actions import Node
 
-
-def make_scan_transformer(output_frame : str, override_frame : str, sub_topic : str, pub_topic : str):
-    return Node(
-        package = 'debug_tools',
-        executable = 'scan_transformer',
-        output = 'screen',
-        parameters = [{
-            'target_frame': output_frame,
-            'override_frame': override_frame
-        }],
-        remappings = [
-            ('input_scan', sub_topic),
-            ('transformed_scan', pub_topic)
-        ]
-    )
-
-def make_imu_transformer(output_frame : str, override_frame : str, sub_topic : str, pub_topic : str):
-    return Node(
-        package = 'debug_tools',
-        executable = 'imu_transformer',
-        output = 'screen',
-        parameters = [{
-            'target_frame': output_frame,
-            'override_frame': override_frame
-        }],
-        remappings = [
-            ('input_imu', sub_topic),
-            ('transformed_imu', pub_topic)
-        ]
-    )
-
-def make_imu_visualizer(topic : str):
-    return Node(
-        package = 'debug_tools',
-        executable = 'imu_visualizer',
-        output = 'screen',
-        parameters = [{ 'imu_topic': topic }]
-    )
-
-def make_accuracy_analyzer(active_frame : str = 'base_link', origin_frame : str = 'map', validation_frame : str = 'gz_base_link', sample_window : float = 0.25):
-    return Node(
-        package = 'debug_tools',
-        executable = 'accuracy_analyzer',
-        output = 'screen',
-        parameters = [{
-            'origin_frame_id': origin_frame,
-            'active_frame_id': active_frame,
-            'validation_frame_id': validation_frame,
-            'std_sample_window_s': sample_window,
-            'use_sim_time': False
-        }],
-        # remappings = [
-        #     ('input_scan', sub_topic),
-        #     ('transformed_scan', pub_topic)
-        # ]
-    )
 
 def generate_launch_description():
 
@@ -79,7 +23,6 @@ def generate_launch_description():
         ),
         launch_arguments = {'use_sim_time': 'false'}.items()
     )
-
     # bag2 play
     bag_player = ExecuteProcess(
         cmd = [
@@ -91,49 +34,26 @@ def generate_launch_description():
         ],
         output='screen'
     )
-
-    # launch cardinal_perception using parameters in this project
-    cardinal_perception = Node(
-        name = 'cardinal_perception',
-        package = 'cardinal_perception',
-        executable = 'perception_node',
-        output = 'screen',
-        parameters = [
-            os.path.join(pkg_path, 'config', 'cardinal_perception_live.yaml'),
-            {
-                'use_sim_time': False,
-                # 'scan_topic': '/cloud_all_fields_fullframe/transformed',
-                # 'imu_topic': '/multiscan/imu',
-            }
-        ],
-        remappings = [
-            ('debug_img', 'cardinal_perception/debug_img'),
-            ('filtered_scan', 'cardinal_perception/filtered_scan')
-        ],
-        condition = IfCondition( LaunchConfiguration('processing', default='true') )
-    )
-    # sick_perception
-    sick_perception = IncludeLaunchDescription(
+    # perception stack
+    launch_perception = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
-            os.path.join(get_package_share_directory('sick_perception'), 'launch', 'sick_perception.launch.py')
+            os.path.join(pkg_path, 'launch', 'perception.launch.py')
         ),
-        launch_arguments = {'use_sim_time': 'false'}.items(),
-        condition = IfCondition( LaunchConfiguration('processing', default='true') )
+        launch_arguments = {
+            'is_sim': 'false',
+            'live_scan_topic': '/multiscan/lidar_scan',
+            'live_imu_topic': '/multiscan/imu'
+        }.items(),
+        condition = IfCondition(LaunchConfiguration('processing', default='false'))
     )
-
-    # launch foxglove_bridge
-    foxglove_bridge = Node(
-        name = 'foxglove_server',
-        package = 'foxglove_bridge',
-        executable = 'foxglove_bridge',
-        output = 'screen',
-        parameters = [
-            os.path.join(pkg_path, 'config', 'foxglove_bridge.yaml'),
-            {'use_sim_time': False}
-        ],
-        condition = IfCondition( LaunchConfiguration('foxglove', default='true') )
+    # foxglove server if enabled
+    foxglove_node = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            os.path.join(pkg_path, 'launch', 'foxglove.launch.py')
+        ),
+        launch_arguments = {'use_sim_time': 'true'}.items(),
+        condition = IfCondition(LaunchConfiguration('foxglove', default='true'))
     )
-
     # rviz
     rviz = Node(
         package = 'rviz2',
@@ -150,12 +70,7 @@ def generate_launch_description():
         DeclareLaunchArgument('bag', default_value=''),
         robot_state_publisher,
         bag_player,
-        make_imu_transformer('frame_link', '', '/multiscan/imu', '/multiscan/transformed_imu'),
-        # make_scan_transformer('world', 'lidar_link', '/cloud_all_fields_fullframe', '/cloud_all_fields_fullframe/transformed'),
-        make_imu_visualizer('/multiscan/transformed_imu'),
-        make_accuracy_analyzer('base_link', 'map', '', 0.25),
-        cardinal_perception,
-        sick_perception,
-        foxglove_bridge,
+        launch_perception,
+        foxglove_node,
         rviz
     ])
