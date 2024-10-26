@@ -5,7 +5,7 @@
 
     num_streams: 1
 
-    stream0: [ "/lifecam/image_raw", "/lifecam/camera_info", "map" ]
+    stream0: [ "/arducam1/image_raw", "/arducam1/camera_info", "map" ]
     stream0_offset: [ 0., 0., 0.8, 0.653, -0.653, 0.271, -0.271 ]
 
     feature:  # detection export key: 0=off, 1=enable, -1=only when filtered
