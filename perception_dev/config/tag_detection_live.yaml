@@ -25,10 +25,11 @@
         min_tags_per_range: 0.6         # there must be at least this number of tags per [avg] meter of distance to the detected tags
         max_rms_per_tag: 0.40           # maximum valid RMS error per tag
         min_sum_pix_area: 7500.         # minimum total pixels that detected tags must occupy
+        min_tags: 2
 
     aruco:
       predefined_family_idx: 20     # tag family to detect -- 20 = AprilTag 36h11
-      tag_ids: [ 0., 1., 5. ]   # the tag ids which should be used, and whose corners are defined below:
+      tag_ids: [ 0., 1., 2., 3., 4., 5. ]   # the tag ids which should be used, and whose corners are defined below:
 
       tag0_static: false
       tag0_frames: [ "base_link" ]
@@ -42,27 +43,28 @@
                       0.119, 0.350, 0.411,
                       0.285, 0.350, 0.414,
                       0.282, 0.350, 0.580 ]
-      # tag2_static: false
-      # tag2_frames: [ "base_link" ]
-      # tag2_corners: [ -0.003, -0.353, 0.338,
-      #                 -0.100, -0.281, 0.336,
-      #                 -0.102, -0.281, 0.456,
-      #                 -0.005, -0.353, 0.458 ]
-      # tag3_static: false
-      # tag3_frames: [ "base_link" ]
-      # tag3_corners: [ -0.100, 0.281, 0.336,
-      #                 -0.003, 0.353, 0.338,
-      #                 -0.005, 0.353, 0.458,
-      #                 -0.102, 0.281, 0.456 ]
-      # tag4_static: false
-      # tag4_frames: [ "base_link" ]
-      # tag4_corners: [ 0.364, -0.280, 0.477,
-      #                 0.303, -0.360, 0.476,
-      #                 0.301, -0.360, 0.576,
-      #                 0.362, -0.280, 0.577 ]
+      tag4_static: false
+      tag4_frames: [ "base_link" ]
+      tag4_corners: [ 0.370, -0.273, 0.518,
+                      0.327, -0.340, 0.518,
+                      0.326, -0.340, 0.598,
+                      0.369, -0.273, 0.598 ]
       tag5_static: false
       tag5_frames: [ "base_link" ]
       tag5_corners: [ 0.327, 0.340, 0.518,
                       0.370, 0.273, 0.518,
                       0.369, 0.273, 0.598,
                       0.326, 0.340, 0.598 ]
+    # separate test rig >>>>>
+      tag2_static: false
+      tag2_frames: [ "base_link" ]
+      tag2_corners: [ -0.040, 0.055, 0.045,
+                       0.039, 0.055, 0.044,
+                       0.040, 0.055, 0.124,
+                      -0.039, 0.055, 0.125 ]
+      tag3_static: false
+      tag3_frames: [ "base_link" ]
+      tag3_corners: [ 0.055,  0.040, 0.043,
+                      0.055, -0.039, 0.042,
+                      0.055, -0.040, 0.122,
+                      0.055,  0.039, 0.123 ]
