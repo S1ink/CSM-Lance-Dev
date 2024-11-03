@@ -48,7 +48,7 @@ def make_imu_visualizer(topic):
         parameters = [{ 'imu_topic': topic }]
     )
 
-def make_accuracy_analyzer(active_frame : str = 'base_link', origin_frame : str = 'map', validation_frame : str = 'gz_base_link', sample_window : float = 0.25, is_sim : bool = True):
+def make_accuracy_analyzer(active_frame : str = 'base_link', origin_frame : str = 'map', validation_frame : str = 'gz_base_link', sample_window : float = 0.25, is_sim : bool = True, remap = '/accuracy_analysis'):
     return Node(
         package = 'debug_tools',
         executable = 'accuracy_analyzer',
@@ -60,10 +60,9 @@ def make_accuracy_analyzer(active_frame : str = 'base_link', origin_frame : str 
             'std_sample_window_s': sample_window,
             'use_sim_time': is_sim
         }],
-        # remappings = [
-        #     ('input_scan', sub_topic),
-        #     ('transformed_scan', pub_topic)
-        # ]
+        remappings = [
+            ('accuracy_analysis', remap)
+        ]
     )
 
 def make_state_publisher(sim_time : bool = True):
@@ -187,7 +186,8 @@ def generate_launch_description():
                 #     os.path.join(pkg_path, 'config', 'mola-lo.yaml'),
                 #     {'use_sim_time': True}
                 # ]),
-                make_accuracy_analyzer('base_link', 'map', 'gz_base_link', 0.25, True),
+                make_accuracy_analyzer('base_link', 'map', 'gz_base_link', 0.25, True, 'localization_acc_analysis'),
+                make_accuracy_analyzer('base_link_e0', 'map', 'gz_base_link', 0.25, True, 'tags_detection_acc_analysis')
             ],
             condition = IfCondition(is_sim)
         ),

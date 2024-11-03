@@ -21,6 +21,7 @@ if(NOT MSVC)
   endif()
 endif()
 
+find_package(rosidl_default_generators REQUIRED)
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(std_msgs REQUIRED)
@@ -39,6 +40,14 @@ include_directories(${EIGEN3_INCLUDE_DIRS})
 
 include_directories(include)
 include_directories(SYSTEM)
+
+
+rosidl_generate_interfaces(${PROJECT_NAME}
+  "msg/AccuracyAnalysis.msg"
+  DEPENDENCIES std_msgs geometry_msgs)
+
+rosidl_get_typesupport_target(debug_tools_custom_types
+  ${PROJECT_NAME} rosidl_typesupport_cpp)
 
 add_executable(scan_transformer "src/scan_transformer.cpp")
 target_include_directories(scan_transformer PUBLIC
@@ -111,7 +120,8 @@ target_include_directories(accuracy_analyzer PUBLIC
   $<INSTALL_INTERFACE:include/${PROJECT_NAME}>)
 
 target_link_libraries(accuracy_analyzer
-  Eigen3::Eigen)
+  Eigen3::Eigen
+  "${debug_tools_custom_types}")
 ament_target_dependencies(accuracy_analyzer
   "rclcpp"
   "std_msgs"
@@ -136,4 +146,5 @@ if(BUILD_TESTING)
   ament_lint_auto_find_test_dependencies()
 endif()
 
+ament_export_dependencies(rclcpp std_msgs sensor_msgs geometry_msgs pcl_ros tf2_ros tf2_sensor_msgs tf2_geometry_msgs rosidl_default_runtime)
 ament_package()
