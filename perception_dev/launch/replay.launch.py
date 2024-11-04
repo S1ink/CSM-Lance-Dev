@@ -43,6 +43,7 @@ def generate_launch_description():
             'is_sim': 'false',
             'live_scan_topic': '/multiscan/lidar_scan',
             'live_imu_topic': '/multiscan/imu'
+            # 'live_scan_topic': '/filtered_cloud'
         }.items(),
         condition = IfCondition(LaunchConfiguration('processing', default='false'))
     )
